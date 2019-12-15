@@ -2,30 +2,32 @@
 
 // let A = [0,4,5,7,8,11,12,15];
 // let A = [0,1,3,4,6,7,8,9,11,12,13,14,15]
-let A = [0, 1, 2, 3, 6, 8, 9, 10, 11, 17, 20, 21, 23, 25, 28, 30, 31];
+let A = [0, 1, 2, 3, 6, 8, 9, 10, 11, 17, 20, 21, 23, 25, 28, 30, 31];  // Input list
 // let A = [2,4,6,9,10,11,12,13,15]; - Don't Care Example
 
-let B = [];
-let doneList = [];
-let notDoneList = [];
-let numA = 0;
-let doneIter = false;
+let B = [];                 // Iteration list
+let notDoneList = [];       // Another iteration list, supporting B
+let doneList = [];          // The elements which go through to the final stage
+let doneIter = false;       // Done iterations?
+let numV = 0;               // Number of variables
 
+// Class used to produce ternary elements (Consisting of '1', '0' or '-')
 class Num {
-    constructor(bin, d1, d2) {
+    constructor(bin, D1, D2) {
         this.bin = bin;
-        this.padZeros();
         this.count1s = 0;
-        this.numOfOnes();
-        this.decComb = d1 + "-" + d2;
+        this.decComb = D1 + "-" + D2;
+        this.logic = "";
         this.done = true;
+        this.padZeros();
+        this.numOfOnes();
     }
     padZeros() {
-        while (this.bin.length < numA)
+        while (this.bin.length < numV)
             this.bin = "0" + this.bin;
     }
     numOfOnes() {
-        for (let i = 0; i < numA; i++) {
+        for (let i = 0; i < numV; i++) {
             if (this.bin.charAt(i) === "1")
                 this.count1s++;
         }
@@ -33,87 +35,47 @@ class Num {
 }
 
 // Determines the maximum number of bits required to represent the maximum decimal element in the list
-while (Math.max(...A) >= Math.pow(2, numA)) {
-    numA++;
+while (Math.max(...A) >= Math.pow(2, numV)) {
+    numV++;
 }
 
 // Main boolean simplification function
-function main(A) {
+function main() {
+    // Store copy of A
+    let Acopy = [...A];
 
     // Converts every array element from decimal to class element
-    A.forEach(function (value, index, array) {
+    Acopy.forEach(function (value, index, array) {
         array[index] = new Num(Number(value).toString(2), value, "");
     });
 
     // List B groups each binary number by the number of 1s it contains. Add 'n' lists to B, where n is the maximum number of groups possible
-    while (B.length < numA + 1) {
+    while (B.length < numV + 1) {
         B.push([]);
         notDoneList.push([]);
     }
 
     // Determines the number of 1s in each binary element and places it into its corresponding list in B
-    A.forEach(function (value) {
+    Acopy.forEach(function (value) {
         B[value.count1s].push(value);
     });
 
+    // Determines which elements are to continue in the iteration and which are complete. Continued until no more iterations can be performed.
     while (!doneIter) {
         iteration();
     }
 
+    // This function cleans up the final list by removing duplicates
     remExtra();
-}
 
-function remExtra() {
-    let nums = [];
-    doneList.forEach(function () {
-        nums.push([]);
-    });
-    let contNum = false;
-    doneList.forEach(function (value, index) {
-        for (let i = 0; i < value.decComb.length; i++) {
-            if (isNaN(value.decComb.charAt(i)))
-                contNum = false;
-            else if (!isNaN(value.decComb.charAt(i)) && contNum === false) {
-                nums[index].push(value.decComb.charAt(i));
-                contNum = true;
-            } else if (!isNaN(value.decComb.charAt(i)) && contNum === true) {
-                nums[index][nums[index].length - 1] = nums[index][nums[index].length - 1] + value.decComb.charAt(i);
-            }
-        }
-        value.decComb = nums[index];
-    });
+    // Determines boolean expression for each element in doneList 
+    calcLogic();
 
-    let trueList = [];
-    for (let i = 0; i < nums.length; i++) {
-        for (let j = i + 1; j < nums.length; j++) {
-            if (nums[i].every(elem => nums[j].indexOf(elem) > -1) && !trueList.includes(j))
-                trueList.push(j);
-        }
-    }
+    // Organizes data into a table
+    let elemArr = graph();
 
-    for (let i = 0; i < trueList.length; i++) {
-        doneList = doneList.slice(0, trueList[i]).concat(doneList.slice(trueList[i] + 1, doneList.length));
-        for (j = i + 1; j < trueList.length; j++) {
-            trueList[j]--;
-        }
-    }
-}
+    return;
 
-function XOR(val1, val2) {
-    let count = 0;
-    let res = "";
-    for (let i = 0; i < numA; i++) {
-        if (val1.bin.charAt(i) !== val2.bin.charAt(i)) {
-            res = res + "-";
-            count++;
-        } else {
-            res = res + val1.bin.charAt(i);
-        }
-    }
-    if (count === 1)
-        return [res, true];
-    else
-        return [res, false];
 }
 
 function iteration() {
@@ -149,15 +111,108 @@ function iteration() {
 
     B = notDoneList;
     notDoneList = [];
-    for (let i = 0; i < numA; i++)
+    for (let i = 0; i < numV; i++)
         notDoneList.push([]);
 
     if (!comparison)
         doneIter = true;
 
+    return;
+
 }
 
-main(A);
+// XOR compares two values to see if they differ by one digit
+function XOR(val1, val2) {
+    let count = 0;
+    let res = "";
+    for (let i = 0; i < numV; i++) {
+        if (val1.bin.charAt(i) !== val2.bin.charAt(i)) {
+            res = res + "-";
+            count++;
+        } else {
+            res = res + val1.bin.charAt(i);
+        }
+    }
+    if (count === 1)
+        return [res, true];
+    else
+        return [res, false];
+}
+
+function remExtra() {
+    let nums = [];
+    doneList.forEach(function () {
+        nums.push([]);
+    });
+    let contNum = false;
+    doneList.forEach(function (value, index) {
+        for (let i = 0; i < value.decComb.length; i++) {
+            if (isNaN(value.decComb.charAt(i)))
+                contNum = false;
+            else if (!isNaN(value.decComb.charAt(i)) && contNum === false) {
+                nums[index].push(value.decComb.charAt(i));
+                contNum = true;
+            } else if (!isNaN(value.decComb.charAt(i)) && contNum === true) {
+                nums[index][nums[index].length - 1] += value.decComb.charAt(i);
+            }
+        }
+        value.decComb = nums[index];
+    });
+
+    let trueList = [];
+    for (let i = 0; i < nums.length; i++) {
+        for (let j = i + 1; j < nums.length; j++) {
+            if (nums[i].every(elem => nums[j].indexOf(elem) > -1) && !trueList.includes(j))
+                trueList.push(j);
+        }
+    }
+
+    for (let i = 0; i < trueList.length; i++) {
+        doneList = doneList.slice(0, trueList[i]).concat(doneList.slice(trueList[i] + 1, doneList.length));
+        for (j = i + 1; j < trueList.length; j++) {
+            trueList[j]--;
+        }
+    }
+
+    return;
+}
+
+function calcLogic () {
+    doneList.forEach(function(value) {
+        for (let i = 0; i < numV; i++) {
+            if (value.bin.charAt(i) === '0')
+                value.logic = value.logic + alphabet(i) + "'";
+            else if (value.bin.charAt(i) === '1')
+                value.logic = value.logic + alphabet(i);
+        }
+    });
+
+    return;
+}
+
+function alphabet(i) {
+    let alpha = ['A','B','C','D','E','F','G','H','I','J','K','L','M','N','O','P','Q','R','S','T','U','V','W','X','Y','Z'];
+    return alpha[i];
+}
+
+function graph() {
+    let graphArr = [];
+    doneList.forEach(function(value) {
+        let x = [...value.decComb];
+        for (let i = 0; i < A.length; i++) {
+            if (x[i] != A[i] && !isNaN(x[i]))
+                x.splice(i,0,'');
+            if (i >= x.length)
+                x.push('');
+        }
+        graphArr.push(x);
+    });
+
+    return graphArr;
+}
+
+main();
+console.log(A);
 console.log(doneList)
 
 //console.log(B)
