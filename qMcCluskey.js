@@ -1,17 +1,17 @@
-/* This algorithm simplifies boolean logic through the Quinn-McCluskey Method */
+/* This algorithm simplifies boolean logic using the Quinn-McCluskey Algorithm */
 
-// let A = [0,4,5,7,8,11,12,15];
-let A = [0, 1, 3, 4, 6, 7, 8, 9, 11, 12, 13, 14, 15]
-//let A = [0, 1, 2, 3, 6, 8, 9, 10, 11, 17, 20, 21, 23, 25, 28, 30, 31];  // Input list
-// let A = [2,4,6,9,10,11,12,13,15]; - Don't Care Example
+// let A = [0, 4, 5, 7, 8, 11, 12, 15];
+// let A = [0, 1, 3, 4, 6, 7, 8, 9, 11, 12, 13, 14, 15]
+let A = [0, 1, 2, 3, 6, 8, 9, 10, 11, 17, 20, 21, 23, 25, 28, 30, 31];  // Input list
+// let A = [2, 4, 6, 9, 10, 11, 12, 13, 15]; - Don't Care Example
 
 let B = [];                 // Iteration list
 let notDoneList = [];       // Another iteration list, supporting B
 let doneList = [];          // The elements which go through to the final stage
 let doneIter = false;       // Done iterations?
 let numV = 0;               // Number of variables
-let boolExpr = "";
-let check = false;
+let check = false;          // Checks whether all 'x's in graph are crossed
+let boolExpr = "";          // Final boolean expression
 
 // Class used to produce ternary elements (Consisting of '1', '0' or '-')
 class Num {
@@ -43,7 +43,7 @@ while (Math.max(...A) >= Math.pow(2, numV)) {
 
 // Main boolean simplification function
 function main() {
-    
+
     // Use copy of A to preserve original list
     let Acopy = [...A];
 
@@ -84,7 +84,7 @@ function main() {
     while (!check) {
         boolExpr += doneList[pntl[0][2]].logic + " + "; // Update boolean expression
         elemArr = newGraph(elemArr, pntl[0][2]);        // Reproduce graph
-        pntl = potentialFcn(elemArr)                    // Reproduce new potential function for the new graph
+        pntl = potentialFcn(elemArr);                   // Reproduce new potential function for the new graph
         checkElem(elemArr);                             // Checks whether the all 'x's are cancelled.
     }
 

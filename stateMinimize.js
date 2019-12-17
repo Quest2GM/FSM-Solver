@@ -1,0 +1,1 @@
+/* Performs state minimization on the Finite State Machine */
