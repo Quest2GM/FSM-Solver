@@ -1,9 +1,11 @@
 /* This algorithm simplifies boolean logic using the Quinn-McCluskey Algorithm */
 
-// let A = [0, 4, 5, 7, 8, 11, 12, 15];
-// let A = [0, 1, 3, 4, 6, 7, 8, 9, 11, 12, 13, 14, 15]
-let A = [0, 1, 2, 3, 6, 8, 9, 10, 11, 17, 20, 21, 23, 25, 28, 30, 31];  // Input list
-// let A = [2, 4, 6, 9, 10, 11, 12, 13, 15]; - Don't Care Example
+//let A = [0, 4, 5, 7, 8, 11, 12, 15];
+//let A = [0, 1, 3, 4, 6, 7, 8, 9, 11, 12, 13, 14, 15]
+//let A = [0, 1, 2, 3, 6, 8, 9, 10, 11, 17, 20, 21, 23, 25, 28, 30, 31];
+let A = [4, 6, 9, 10, 11, 13];  // Input List
+let DC = [2, 12, 15];           // Don't Cares
+//let DC = [];
 
 let B = [];                 // Iteration list
 let notDoneList = [];       // Another iteration list, supporting B
@@ -36,16 +38,20 @@ class Num {
     }
 }
 
+// Concatenate A with Don't Care List
+let C = [...A].concat(...DC);
+C = C.sort( function (a,b) { return a-b; } );
+
 // Determines the maximum number of bits required to represent the maximum decimal element in the list
-while (Math.max(...A) >= Math.pow(2, numV)) {
+while (Math.max(...C) >= Math.pow(2, numV)) {
     numV++;
 }
 
 // Main boolean simplification function
 function main() {
 
-    // Use copy of A to preserve original list
-    let Acopy = [...A];
+    // Use copy of C to preserve original list
+    let Acopy = [...C];
 
     // Converts every array element from decimal to class element
     Acopy.forEach(function (value, index, array) {
@@ -213,11 +219,16 @@ function literal(i) {
     return alpha[i];
 }
 
-// Initializes the graph
+// Initializes the graph. Handles don't cares.
 function graph() {
     let graphArr = [];
     doneList.forEach(function (value) {
-        graphArr.push([...value.decComb]);
+        let newDecComb = [];
+        for (let i = 0; i < value.decComb.length; i++) {
+            if (!DC.includes(Number(value.decComb[i])))
+                newDecComb.push(value.decComb[i]);
+        }
+        graphArr.push(newDecComb);
     });
 
     return graphArr;
@@ -228,7 +239,7 @@ function potentialFcn(element) {
     let pntl = [];
     let count = 0;
 
-    A.forEach(function (value) {
+    C.forEach(function (value) {
         for (let i = 0; i < element.length; i++) {
             if (element[i].includes("" + value + "")) {
                 count++;
@@ -243,8 +254,11 @@ function potentialFcn(element) {
     for (let i = 0; i < element.length; i++) {
         pntl.push([]);
         for (let j = 0; j < element[i].length; j++) {
-            let I = A.findIndex(function (value) { if (value == element[i][j]) { return true; } });
-            pntlCount += elemCount[I];
+            let I = C.findIndex(function (value) { if (value == element[i][j]) { return true; } });
+            if (I === -1)
+                pntlCount += 0;
+            else
+                pntlCount += elemCount[I];
             if (elemCount[I] === 1)
                 pntlPI = true;
         }
