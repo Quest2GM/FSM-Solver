@@ -3,9 +3,11 @@
 //let A = [0, 4, 5, 7, 8, 11, 12, 15];
 //let A = [0, 1, 3, 4, 6, 7, 8, 9, 11, 12, 13, 14, 15]
 //let A = [0, 1, 2, 3, 6, 8, 9, 10, 11, 17, 20, 21, 23, 25, 28, 30, 31];
-let A = [4, 6, 9, 10, 11, 13];  // Input List
-let DC = [2, 12, 15];           // Don't Cares
+//let A = [4, 6, 9, 10, 11, 13];  // Input List
+//let DC = [2, 12, 15];           // Don't Cares
 //let DC = [];
+let A = [8,9];
+let DC = [10, 11, 12, 13, 14, 15];
 
 let B = [];                 // Iteration list
 let notDoneList = [];       // Another iteration list, supporting B
@@ -215,7 +217,7 @@ function calcLogic() {
 
 // Outputs the literals in alphabetical order
 function literal(i) {
-    let alpha = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z'];
+    let alpha = ['(y2)', '(y1)', '(y0)', 'w', 'e', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z'];
     return alpha[i];
 }
 

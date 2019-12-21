@@ -54,5 +54,8 @@ module lab6part2 (SW, LEDR, KEY);
 	
 endmodule
 
-
 */
+
+console.log("Henlo \
+and all that inhabit it \
+world");
