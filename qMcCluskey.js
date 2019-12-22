@@ -6,7 +6,7 @@
 //let A = [4, 6, 9, 10, 11, 13];  // Input List
 //let DC = [2, 12, 15];           // Don't Cares
 //let DC = [];
-let A = [8,9];
+let A = [8, 9];
 let DC = [10, 11, 12, 13, 14, 15];
 
 let B = [];                 // Iteration list
@@ -42,7 +42,7 @@ class Num {
 
 // Concatenate A with Don't Care List
 let C = [...A].concat(...DC);
-C = C.sort( function (a,b) { return a-b; } );
+C = C.sort(function (a, b) { return a - b; });
 
 // Determines the maximum number of bits required to represent the maximum decimal element in the list
 while (Math.max(...C) >= Math.pow(2, numV)) {

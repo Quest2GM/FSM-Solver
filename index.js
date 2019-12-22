@@ -19,7 +19,7 @@ function addRow() {
 
     td1.textContent = literal(stateTableRC);
     td1.style.textAlign = "center";
-  
+
     tb2.setAttribute("type", "text");
     tb2.style.height = "15px";
     tb2.style.width = "90px";
