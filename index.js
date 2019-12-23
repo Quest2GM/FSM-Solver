@@ -6,13 +6,17 @@
 let stateTable = document.getElementById("stateTable");
 let leftCol = document.getElementById("leftCol");
 let rightCol = document.getElementById("rightCol");
+let synchRad = document.getElementById("synchRad");
+let asynchRad = document.getElementById("asynchRad");
+let binRad = document.getElementById("binRad");
+let OHRad = document.getElementById("OHRad");
+let MOHRad = document.getElementById("MOHRad");
 
 // Verilog FSM Variables
-let typeBin = 1;    // 0 = binary, 1 = one-hot, 2 = modified one-hot
-let synch = true;   // Synchronous or asynchronous reset
+let typeBin;    // 0 = binary, 1 = one-hot, 2 = modified one-hot
+let synch;   // Synchronous or asynchronous reset
 let initialState = "A";
 let numV = 0;
-let numMinV = 0;
 let binStates = [];
 
 // State Minimization Variables
@@ -83,7 +87,9 @@ function literal(i) {
 }
 
 function extData() {
+
     resetVars();
+    selectRadio();
 
     for (let i = 2; i < stateTable.rows.length; i++) {
         for (let j = 1; j < 4; j++) {
@@ -98,8 +104,7 @@ function extData() {
     }
 
     mainSM();
-    binStates = binTrans(states, binStates, 0)[0];
-    numV = binTrans(states, binStates, 0)[1];
+    binStates = binTrans(states, binStates);
 
     // Left Column Functions
     dispState(states, binStates, leftCol);
@@ -137,9 +142,36 @@ function resetVars() {
     while (leftCol.hasChildNodes()) {
         leftCol.removeChild(leftCol.lastChild);
     }
+    while (rightCol.hasChildNodes()) {
+        rightCol.removeChild(rightCol.lastChild);
+    }
 
     return;
 
+}
+
+// ------------------------
+// Selections
+// ------------------------
+
+function selectRadio() {
+    if (synchRad.checked)
+        synch = true;
+    else if (asynchRad.checked)
+        synch = false;
+    else
+        throw new Error("Select synch!");
+
+    if (binRad.checked)
+        typeBin = 0;
+    else if (OHRad.checked)
+        typeBin = 1;
+    else if (MOHRad.checked)
+        typeBin = 2;
+    else
+        throw new Error("Select typeBin!");
+    
+    return;
 }
 
 // ------------------------
@@ -234,21 +266,21 @@ function dispBinTable(s, bS, w0Min, w1Min, zMin, xCol) {
 
 // Finds the max power of the elements
 // Pads and finds binary translation of each element in the state list (binary translation is based on typeBin)
-function binTrans(S, X, N) {
+function binTrans(S, X) {
     if (typeBin === 0) {
-        while (S.length - 1 >= Math.pow(2, N))
-            N++;
+        while (S.length - 1 >= Math.pow(2, numV))
+            numV++;
         for (let i = 0; i < S.length; i++)
             X.push(padZeros(i.toString(2)));
     } else if (typeBin === 1) {
-        N = S.length;
+        numV = S.length;
         let currBin = "1";
         for (let i = 0; i < S.length; i++) {
             X.push(padZeros(currBin.toString(2)));
             currBin = currBin << 1;
         }
     } else {
-        N = S.length;
+        numV = S.length;
         let currBin = "0";
         let powDec;
         X.push(padZeros(currBin.toString(2)));
@@ -257,7 +289,7 @@ function binTrans(S, X, N) {
             X.push(padZeros(Number(powDec).toString(2)));
         }
     }
-    return [X, N];
+    return X;
 }
 
 // Function used to pad binary numbers with leading zeros
@@ -469,8 +501,7 @@ function minFSM() {
     minW1 = mW1;
     minZ = mZ;
 
-    minBinStates = binTrans(minStates, minBinStates, 0)[0];
-    numMinV = binTrans(minStates, minBinStates, 0)[1];
+    minBinStates = binTrans(minStates, minBinStates);
 
     return [minStates, minBinStates, minW0, minW1, minZ];
 }
