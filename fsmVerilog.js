@@ -1,11 +1,16 @@
 /* Produces the Verilog for the Finite State Machine */
 
-let typeBin = 2; // 0 = binary, 1 = one-hot, 2 = modified one-hot
+let typeBin = 0; // 0 = binary, 1 = one-hot, 2 = modified one-hot
+let synch = true;
 
+// let states = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I'];
+// let w0 = ['B', 'C', 'D', 'E', 'E', 'B', 'B', 'B', 'B'];
+// let w1 = ['F', 'F', 'F', 'F', 'F', 'G', 'H', 'I', 'I'];
+// let Z = [0, 0, 0, 0, 1, 0, 0, 0, 1];
 let states = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I'];
-let w0 = ['B', 'C', 'D', 'E', 'E', 'B', 'B', 'B', 'B'];
-let w1 = ['F', 'F', 'F', 'F', 'F', 'G', 'H', 'I', 'I'];
-let Z = [0, 0, 0, 0, 1, 0, 0, 0, 1];
+let Z = [1, 1, 1, 0, 0, 0, 0, 1, 1];
+let w0 = ['I', 'B', 'C', 'I', 'D', 'I', 'E', 'H', 'A'];
+let w1 = ['C', 'I', 'G', 'C', 'E', 'C', 'F', 'A', 'C'];
 let initialState = "A";
 let numV = 0;
 let binStates = [];
@@ -81,7 +86,10 @@ console.log(defaultVerilog);
 console.log("      endcase");
 console.log("   end");
 console.log("");
-console.log("   always @ (posedge clock)");
+if (synch)
+	console.log("   always @ (posedge clock)");
+else
+	console.log("   always @ (posedge clock, negedge resetn)");
 console.log("   begin");
 console.log("      if (resetn == 1'b0)");
 console.log("         y_Q <= " + initialState + ";");
@@ -101,3 +109,5 @@ console.log("   assign LEDR[9] = Z;");
 console.log("   assign LEDR[3:0] = y_Q;");
 console.log("");
 console.log("endmodule");
+
+console.log(binStates);

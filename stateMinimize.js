@@ -7,12 +7,19 @@
 // let w0 = ['A', 'C', 'D', 'A', 'C'];
 // let w1 = ['B', 'B', 'B', 'E', 'B'];
 
-// // Test Case #2
-let states = ['A', 'B', 'C', 'D', 'E', 'F', 'G'];
+// Test Case #2
+// let states = ['A', 'B', 'C', 'D', 'E', 'F', 'G'];
+// let newState = [[], []];
+// let Z = [1, 1, 0, 1, 0, 0, 0];
+// let w0 = ['B', 'D', 'F', 'B', 'F', 'E', 'F'];
+// let w1 = ['C', 'F', 'E', 'G', 'C', 'D', 'G'];
+
+// Test Case #3
+let states = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I'];
 let newState = [[], []];
-let Z = [1, 1, 0, 1, 0, 0, 0];
-let w0 = ['B', 'D', 'F', 'B', 'F', 'E', 'F'];
-let w1 = ['C', 'F', 'E', 'G', 'C', 'D', 'G'];
+let Z = [1, 1, 1, 0, 0, 0, 0, 1, 1];
+let w0 = ['I', 'B', 'C', 'I', 'D', 'I', 'E', 'H', 'A'];
+let w1 = ['C', 'I', 'G', 'C', 'E', 'C', 'F', 'A', 'C'];
 
 function main() {
     // Divides the initial states based on the value of Z

@@ -7,3 +7,35 @@
     width: 90px;
     text-align: center
 }
+
+#main {
+    background-color: #FFFFFF;
+    min-height: 100px;
+    margin: 10px auto;
+}
+
+#leftCol {
+    background-color: #FFFFFF;
+    width: 50%;
+    min-height: 1000px;
+    float: left;
+}
+
+#rightCol {
+    background-color: #FFFFFF;
+    min-height: 1000px;
+}
+
+.vl {
+    border-left: 1px solid black;
+    height: 1000px;
+    position: absolute;
+    left: 50%;
+    margin-left: -20px;
+    top: 150;
+}
+
+#stateTable {
+    border: 1px solid;
+    margin: 5px;
+}

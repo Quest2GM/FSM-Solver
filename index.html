@@ -10,9 +10,8 @@
 </head>
 
 <body>
-
     <!-- FSM State Table -->
-    <table id='stateTable'>
+    <table id="stateTable">
         <tr>
             <th>Current State</th>
             <th colspan=2>Next State</th>
@@ -31,13 +30,25 @@
             <td> <input class="inBox" , type="text"> </td>
         </tr>
     </table>
+    <br>
 
-    <button id="addST" , onclick="addRow()">+</button>
+    <button id="addST" , onclick="addRow()">+</button>  
     <button id="delST" , onclick="delRow()">−</button>
-     
     <br> <br>
 
-    <button id="delST" , onclick="extData()">Solve</button>
+    <button id="delST" , onclick="extData()"> Solve </button>
+    <br> <br>
+
+    <!-- Solve Area -->
+    <div class="vl"></div>
+    <div id="main">
+        <div id="leftCol">
+            Solve FSM
+        </div>
+        <div id="rightCol">
+            State Minimize and Then Solve FSM
+        </div>
+    </div>
 
     <script src="index.js"></script>
 
