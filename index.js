@@ -12,6 +12,7 @@ let typeBin = 1;    // 0 = binary, 1 = one-hot, 2 = modified one-hot
 let synch = true;   // Synchronous or asynchronous reset
 let initialState = "A";
 let numV = 0;
+let numMinV = 0;
 let binStates = [];
 
 // State Minimization Variables
@@ -97,7 +98,8 @@ function extData() {
     }
 
     mainSM();
-    binTrans();
+    binStates = binTrans(states, binStates, 0)[0];
+    numV = binTrans(states, binStates, 0)[1];
 
     // Left Column Functions
     dispState(states, binStates, leftCol);
@@ -105,8 +107,9 @@ function extData() {
 
     // Right Column Functions
     let minFSMVar = minFSM();
+    dispBinTable(minFSMVar[0], minFSMVar[0], minFSMVar[2], minFSMVar[3], minFSMVar[4], rightCol);
     dispState(minFSMVar[0], minFSMVar[1], rightCol);
-    dispBinTable(minFSMVar[0], minFSMVar[1], rightCol);
+    dispBinTable(minFSMVar[0], minFSMVar[1], minFSMVar[2], minFSMVar[3], minFSMVar[4], rightCol);
 
     return;
 }
@@ -231,30 +234,30 @@ function dispBinTable(s, bS, w0Min, w1Min, zMin, xCol) {
 
 // Finds the max power of the elements
 // Pads and finds binary translation of each element in the state list (binary translation is based on typeBin)
-function binTrans() {
+function binTrans(S, X, N) {
     if (typeBin === 0) {
-        while (states.length - 1 >= Math.pow(2, numV))
-            numV++;
-        for (let i = 0; i < states.length; i++)
-            binStates.push(padZeros(i.toString(2)));
+        while (S.length - 1 >= Math.pow(2, N))
+            N++;
+        for (let i = 0; i < S.length; i++)
+            X.push(padZeros(i.toString(2)));
     } else if (typeBin === 1) {
-        numV = states.length;
+        N = S.length;
         let currBin = "1";
-        for (let i = 0; i < states.length; i++) {
-            binStates.push(padZeros(currBin.toString(2)));
+        for (let i = 0; i < S.length; i++) {
+            X.push(padZeros(currBin.toString(2)));
             currBin = currBin << 1;
         }
     } else {
-        numV = states.length;
+        N = S.length;
         let currBin = "0";
         let powDec;
-        binStates.push(padZeros(currBin.toString(2)));
-        for (let i = 1; i < states.length; i++) {
+        X.push(padZeros(currBin.toString(2)));
+        for (let i = 1; i < S.length; i++) {
             powDec = Math.pow(2, i) + 1;
-            binStates.push(padZeros(Number(powDec).toString(2)));
+            X.push(padZeros(Number(powDec).toString(2)));
         }
     }
-    return;
+    return [X, N];
 }
 
 // Function used to pad binary numbers with leading zeros
@@ -430,36 +433,61 @@ function stateIndex(X) {
 }
 
 // Changes State and Bin State Variables to match minimize FSM
-function minFSM () {
-    let minStates = [...states];
-    let minBinStates = [...binStates];
-    let minW0 = [...w0];
-    let minW1 = [...w1];
+function minFSM() {
+    let minStates = [];
+    let minBinStates = [];
+    let minW0 = [];
+    let minW1 = [];
     let minZ = [...Z];
-    let eqState = [...newState];
+    let eqStateM = [];
+    let eqStateC = [];
 
     for (let i = 0; i < newState.length; i++) {
-        if (newState[i].length !== 1)
-            eqState.push(newState[i]);
-    }
-
-    let c = 0;
-    while (c !== minStates.length) {
-        for (let i = 0; i < eqState.length; i++) {
-            if (eqState[i].includes(minStates[c]) && minStates[c] !== eqState[i][eqState.length-1]) {
-                minStates = minStates.slice(0, c).concat(newState.slice(c + 1, minStates.length));
-                minBinStates = minBinStates.slice(0, c).concat(minBinStates.slice(c + 1, minBinStates.length));
-                minW0 = minW0.slice(0, c).concat(minW0.slice(c + 1, minW0.length));
-                minW1 = minW1.slice(0, c).concat(minW1.slice(c + 1, minW1.length));
-                minZ = minZ.slice(0, c).concat(minZ.slice(c + 1, minZ.length));
-                c--;
-                break;
+        if (newState[i].length !== 1) {
+            for (let j = 0; j < newState[i].length - 1; j++) {
+                eqStateM.push(newState[i][newState[i].length - 1]);
+                eqStateC.push(newState[i][j]);
             }
         }
-        c++;
     }
-       
+
+    minStates = eqStateChange(states, minStates, eqStateC, eqStateM);
+    minW0 = eqStateChange(w0, minW0, eqStateC, eqStateM);
+    minW1 = eqStateChange(w1, minW1, eqStateC, eqStateM);
+
+    let mS = [], mW0 = [], mW1 = [], mZ = [];
+    for (let i = minStates.length - 1; i >= 0; i--) {
+        if (!mS.includes(minStates[i])) {
+            mS.unshift(minStates[i]);
+            mW0.unshift(minW0[i]);
+            mW1.unshift(minW1[i]);
+            mZ.unshift(minZ[i]);
+        }
+    }
+    minStates = mS;
+    minW0 = mW0;
+    minW1 = mW1;
+    minZ = mZ;
+
+    minBinStates = binTrans(minStates, minBinStates, 0)[0];
+    numMinV = binTrans(minStates, minBinStates, 0)[1];
+
     return [minStates, minBinStates, minW0, minW1, minZ];
+}
+
+function eqStateChange(L, R, C, M) {
+    for (let i = 0; i < L.length; i++) {
+        if (C.includes(L[i])) {
+            let idx = C.findIndex(function (val) {
+                if (val === L[i])
+                    return true;
+            });
+            R.push(M[idx]);
+        } else {
+            R.push(L[i]);
+        }
+    }
+    return R;
 }
 
 
