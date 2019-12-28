@@ -27,6 +27,22 @@ let states = [];
 let newState = [[], []];
 let stateTableRC = 1;
 
+// Boolean Expression Variables
+// let A = [];
+// let DC = [];
+
+let C = [];                 // Concatenation of both A and don't cares
+let B = [];                 // Iteration list
+let notDoneList = [];       // Another iteration list, supporting B
+let doneList = [];          // The elements which go through to the final stage
+let doneIter = false;       // Done iterations?
+let check = false;          // Checks whether all 'x's in graph are crossed
+let boolExpr = "";          // Final boolean expression
+let tabVals = [[], [], [], []]; // Binary Table of Values
+let Asub = [];              // A subsitute for preliminary calculation
+
+// __________________________________________________________________
+
 function addRow() {
     if (stateTableRC > 25)
         return;
@@ -41,7 +57,7 @@ function addRow() {
     let tb3 = document.createElement("input");
     let tb4 = document.createElement("input");
 
-    td1.textContent = literal(stateTableRC);
+    td1.textContent = literalAlpha(stateTableRC);
     td1.style.textAlign = "center";
 
     tb2.setAttribute("type", "text");
@@ -81,7 +97,7 @@ function delRow() {
     return;
 }
 
-function literal(i) {
+function literalAlpha(i) {
     let alpha = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z'];
     return alpha[i];
 }
@@ -100,7 +116,7 @@ function extData() {
             else
                 Z.push(Number(stateTable.rows[i].cells[j].children[0].value));
         }
-        states.push(literal(i - 2));
+        states.push(literalAlpha(i - 2));
     }
 
     mainSM();
@@ -109,6 +125,8 @@ function extData() {
     // Left Column Functions
     dispState(states, binStates, leftCol);
     dispBinTable(states, binStates, w0, w1, Z, leftCol);
+    //verilogOutput(states, binStates, w0, w1, Z);
+    findBoolExpr();
 
     // Right Column Functions
     let minFSMVar = minFSM();
@@ -170,7 +188,7 @@ function selectRadio() {
         typeBin = 2;
     else
         throw new Error("Select typeBin!");
-    
+
     return;
 }
 
@@ -212,6 +230,8 @@ function dispState(s, bS, xCol) {
 
 function dispBinTable(s, bS, w0Min, w1Min, zMin, xCol) {
     let row, h1, h2, h3, h4, c1, c2, c3, c4, tab1;
+    let x1, x2, x3, x4;
+
     tab1 = document.createElement("table");
     row = document.createElement("tr");
 
@@ -237,29 +257,42 @@ function dispBinTable(s, bS, w0Min, w1Min, zMin, xCol) {
         c3 = document.createElement("td");
         c4 = document.createElement("td");
 
-        c1.textContent = bS[i];
-        c2.textContent = bS[s.findIndex(function (val) {
+        x1 = bS[i];
+        x2 = bS[s.findIndex(function (val) {
             if (val === w0Min[i])
                 return true;
         })];
-        c3.textContent = bS[s.findIndex(function (val) {
+        x3 = bS[s.findIndex(function (val) {
             if (val === w1Min[i])
                 return true;
         })];
-        c4.textContent = zMin[i];
+        x4 = zMin[i];
+
+        c1.textContent = x1;
+        c2.textContent = x2;
+        c3.textContent = x3;
+        c4.textContent = x4;
 
         row.appendChild(c1);
         row.appendChild(c2);
         row.appendChild(c3);
         row.appendChild(c4);
         tab1.appendChild(row);
+
+        tabVals[0].push("" + x1 + "");
+        tabVals[1].push("" + x2 + "");
+        tabVals[2].push("" + x3 + "");
+        tabVals[3].push("" + x4 + "");
+
     }
+
     xCol.appendChild(tab1);
-    return;
+
+    return tabVals;
 }
 
 // ------------------------
-// State Minimization
+// FSM Verilog
 // ------------------------
 
 /* Produces the Verilog for the Finite State Machine */
@@ -299,69 +332,73 @@ function padZeros(num) {
     return num;
 }
 
-// Verilog Code Output
-console.log("module FSM (SW, LEDR, KEY);");
-console.log("   input [9:0] SW;");
-console.log("   input [0:0] KEY;");
-console.log("   output [9:0] LEDR;");
-console.log("   wire W, clock, resetn, Z;");
-console.log("");
-console.log("   assign W = SW[1];");
-console.log("   assign resetn = SW[0];");
-console.log("   assign clock = KEY[0];");
-console.log("");
-console.log("   reg [3:0] y_Q, Y_D;");
+function verilogOutput(s, bS, wL0, wL1, zL) {
 
-let parameters = "   parameter ";
-for (let i = 0; i < binStates.length; i++) {
-    parameters += states[i] + " = " + numV + "\'b" + binStates[i] + ", ";
+    // Verilog Code Output
+    console.log("module FSM (SW, LEDR, KEY);");
+    console.log("   input [9:0] SW;");
+    console.log("   input [0:0] KEY;");
+    console.log("   output [9:0] LEDR;");
+    console.log("   wire W, clock, resetn, Z;");
+    console.log("");
+    console.log("   assign W = SW[1];");
+    console.log("   assign resetn = SW[0];");
+    console.log("   assign clock = KEY[0];");
+    console.log("");
+    console.log("   reg [3:0] y_Q, Y_D;");
+
+    let parameters = "   parameter ";
+    for (let i = 0; i < bS.length; i++) {
+        parameters += s[i] + " = " + numV + "\'b" + bS[i] + ", ";
+    }
+    parameters = parameters.substring(0, parameters.length - 2) + ";";
+    console.log(parameters);
+    console.log("");
+    console.log("   always @ (W, y_Q)");
+    console.log("   begin");
+    console.log("      case(y_Q)");
+
+    for (let i = 0; i < s.length; i++) {
+        console.log("         " + s[i] + ": if (W) Y_D = " + wL1[i] + ";");
+        console.log("            else Y_D = " + wL0[i] + ";");
+    }
+    let defaultVerilog = "         default: y_D = " + numV + "\'b";
+
+    for (let i = 0; i < numV; i++)
+        defaultVerilog += "x";
+    defaultVerilog += ";";
+
+    console.log(defaultVerilog);
+
+    console.log("      endcase");
+    console.log("   end");
+    console.log("");
+    if (synch)
+        console.log("   always @ (posedge clock)");
+    else
+        console.log("   always @ (posedge clock, negedge resetn)");
+    console.log("   begin");
+    console.log("      if (resetn == 1'b0)");
+    console.log("         y_Q <= " + initialState + ";");
+    console.log("      else");
+    console.log("         y_Q <= y_D;");
+    console.log("   end");
+    console.log("");
+
+    let zVerilog = "   assign Z = ";
+    for (let i = 0; i < zL.length; i++) {
+        if (zL[i] === 1)
+            zVerilog += "(y_Q == " + s[i] + ") | ";
+    }
+    zVerilog = zVerilog.substring(0, zVerilog.length - 3) + ";";
+    console.log(zVerilog);
+    console.log("   assign LEDR[9] = Z;");
+    console.log("   assign LEDR[3:0] = y_Q;");
+    console.log("");
+    console.log("endmodule");
+
+    return;
 }
-parameters = parameters.substring(0, parameters.length - 2) + ";";
-console.log(parameters);
-console.log("");
-console.log("   always @ (W, y_Q)");
-console.log("   begin");
-console.log("      case(y_Q)");
-
-for (let i = 0; i < states.length; i++) {
-    console.log("         " + states[i] + ": if (W) Y_D = " + w1[i] + ";");
-    console.log("            else Y_D = " + w0[i] + ";");
-}
-let defaultVerilog = "         default: y_D = " + numV + "\'b";
-
-for (let i = 0; i < numV; i++)
-    defaultVerilog += "x";
-defaultVerilog += ";";
-
-console.log(defaultVerilog);
-
-console.log("      endcase");
-console.log("   end");
-console.log("");
-if (synch)
-    console.log("   always @ (posedge clock)");
-else
-    console.log("   always @ (posedge clock, negedge resetn)");
-console.log("   begin");
-console.log("      if (resetn == 1'b0)");
-console.log("         y_Q <= " + initialState + ";");
-console.log("      else");
-console.log("         y_Q <= y_D;");
-console.log("   end");
-console.log("");
-
-let zVerilog = "   assign Z = ";
-for (let i = 0; i < Z.length; i++) {
-    if (Z[i] === 1)
-        zVerilog += "(y_Q == " + states[i] + ") | ";
-}
-zVerilog = zVerilog.substring(0, zVerilog.length - 3) + ";";
-console.log(zVerilog);
-console.log("   assign LEDR[9] = Z;");
-console.log("   assign LEDR[3:0] = y_Q;");
-console.log("");
-console.log("endmodule");
-
 
 // ------------------------
 // State Minimization
@@ -521,5 +558,373 @@ function eqStateChange(L, R, C, M) {
     return R;
 }
 
+// ------------------------
+// Boolean Expression Output
+// ------------------------
+
+// Class used to produce ternary elements (Consisting of '1', '0' or '-')
+class Num {
+    constructor(bin, D1, D2) {
+        this.bin = bin;
+        this.count1s = 0;
+        this.decComb = D1 + "-" + D2;
+        this.logic = "";
+        this.done = true;
+        this.padZeros();
+        this.numOfOnes();
+    }
+    padZeros() {
+        while (this.bin.length < numV)
+            this.bin = "0" + this.bin;
+    }
+    numOfOnes() {
+        for (let i = 0; i < numV; i++) {
+            if (this.bin.charAt(i) === "1")
+                this.count1s++;
+        }
+    }
+}
+
+function initializeBool(A, DC) {
+
+    // Reset all variables
+    C = [];
+    B = [];
+    notDoneList = [];
+    doneList = [];
+    doneIter = false;
+    check = false;
+    numV = 0;
+    boolExpr = "";
+
+    // Concatenate A with Don't Care List
+    C = [...A].concat(...DC);
+    C = C.sort(function (a, b) {
+        return a - b;
+    });
+
+    // Determines the maximum number of bits required to represent the maximum decimal element in the list
+    while (Math.max(...C) >= Math.pow(2, numV))
+        numV++;
+}
+
+// Main boolean simplification function
+function mainBoolOut(A, DC) {
+
+    // Initialize
+    initializeBool(A, DC);
+
+    // Use copy of C to preserve original list
+    let Acopy = [...C];
+
+    // Converts every array element from decimal to class element
+    Acopy.forEach(function (value, index, array) {
+        array[index] = new Num(Number(value).toString(2), value, "");
+    });
+
+    // List B groups each binary number by the number of 1s it contains. Add 'n' lists to B, where n is the maximum number of groups possible
+    while (B.length < numV + 1) {
+        B.push([]);
+        notDoneList.push([]);
+    }
+
+    // Determines the number of 1s in each binary element and places it into its corresponding list in B
+    Acopy.forEach(function (value) {
+        B[value.count1s].push(value);
+    });
+
+    // Determines which elements are to continue in the iteration and which are complete. Continued until no more iterations can be performed.
+    while (!doneIter) {
+        iteration();
+    }
+
+    // This function cleans up the final list by removing duplicates
+    remExtra();
+
+    // Determines boolean expression for each element in doneList 
+    calcLogic();
+
+    // Organizes data into a table
+    let elemArr = graph(DC);
+
+    // Finds the potential for each row in the table : the potential is determined by a prioritization algorithm - priority is given to rows with essential prime implicants and then those with the maximum number of 'x's the row can cancel
+    let pntl = potentialFcn(elemArr);
+
+    // Iteration loop that finds optimal boolean expression.
+    while (!check) {
+        boolExpr += doneList[pntl[0][2]].logic + " + "; // Update boolean expression
+        elemArr = newGraph(elemArr, pntl[0][2]);        // Reproduce graph
+        pntl = potentialFcn(elemArr);                   // Reproduce new potential function for the new graph
+        checkElem(elemArr);                             // Checks whether the all 'x's are cancelled.
+    }
+
+    boolExpr = boolExpr.substring(0, boolExpr.length - 3);  // Remove the last three characters, ie. ' + ', to produce final expression
+
+    return boolExpr;
+
+}
+
+function iteration() {
+    let comparison = false, val;
+    for (let i = 0; i < B.length - 1; i++) {
+        for (let j = 0; j < B[i].length; j++) {
+            for (let k = 0; k < B[i + 1].length; k++) {
+                let outXOR = XOR(B[i][j], B[i + 1][k]);
+                if (outXOR[1]) {
+                    val = new Num(outXOR[0], B[i][j].decComb, B[i + 1][k].decComb);
+                    B[i][j].done = false;
+                    B[i + 1][k].done = false;
+                    notDoneList[i].push(val);
+                    comparison = true;
+                }
+            }
+            if (B[i][j].done !== false)
+                doneList.push(B[i][j]);
+        }
+    }
 
 
+    for (let k = 0; k < B[B.length - 1].length; k++) {
+        if (B[B.length - 1][k].done !== false)
+            doneList.push(B[B.length - 1][k]);
+    }
+
+    let x = notDoneList.length;
+    while (Array.isArray(notDoneList[x - 1]) && notDoneList[x - 1].length === 0) {
+        notDoneList.pop();
+        x--;
+    }
+
+    B = notDoneList;
+    notDoneList = [];
+    for (let i = 0; i < numV; i++)
+        notDoneList.push([]);
+
+    if (!comparison)
+        doneIter = true;
+
+    return;
+
+}
+
+// XOR compares two values to see if they differ by one digit
+function XOR(val1, val2) {
+    let count = 0;
+    let res = "";
+    for (let i = 0; i < numV; i++) {
+        if (val1.bin.charAt(i) !== val2.bin.charAt(i)) {
+            res = res + "-";
+            count++;
+        } else {
+            res = res + val1.bin.charAt(i);
+        }
+    }
+    if (count === 1)
+        return [res, true];
+    else
+        return [res, false];
+}
+
+function remExtra() {
+    let nums = [];
+    doneList.forEach(function () {
+        nums.push([]);
+    });
+    let contNum = false;
+    doneList.forEach(function (value, index) {
+        for (let i = 0; i < value.decComb.length; i++) {
+            if (isNaN(value.decComb.charAt(i)))
+                contNum = false;
+            else if (!isNaN(value.decComb.charAt(i)) && contNum === false) {
+                nums[index].push(value.decComb.charAt(i));
+                contNum = true;
+            } else if (!isNaN(value.decComb.charAt(i)) && contNum === true) {
+                nums[index][nums[index].length - 1] += value.decComb.charAt(i);
+            }
+        }
+        value.decComb = nums[index];
+    });
+
+    let trueList = [];
+    for (let i = 0; i < nums.length; i++) {
+        for (let j = i + 1; j < nums.length; j++) {
+            if (nums[i].every(elem => nums[j].indexOf(elem) > -1) && !trueList.includes(j))
+                trueList.push(j);
+        }
+    }
+
+    for (let i = 0; i < trueList.length; i++) {
+        doneList = doneList.slice(0, trueList[i]).concat(doneList.slice(trueList[i] + 1, doneList.length));
+        for (let j = i + 1; j < trueList.length; j++) {
+            trueList[j]--;
+        }
+    }
+
+    return;
+}
+
+// Finds the boolean expression for the specific element in the doneList
+function calcLogic() {
+    doneList.forEach(function (value) {
+        for (let i = 0; i < numV; i++) {
+            if (value.bin.charAt(i) === '0')
+                value.logic = value.logic + literal(i) + "'";
+            else if (value.bin.charAt(i) === '1')
+                value.logic = value.logic + literal(i);
+        }
+    });
+
+    return;
+}
+
+// Outputs the literals in alphabetical order
+function literal(i) {
+    let alphaL = ['(y25)', '(y24)', '(y23)', '(y22)', '(y21)', '(y20)', '(y19)', '(y18)', '(y17)', '(y16)', '(y15)', '(y14)', '(y13)', '(y12)', '(y11)', '(y10)', '(y9)', '(y8)', '(y7)', '(y6)', '(y5)', '(y4)', '(y3)', '(y2)', '(y1)', '(y0)', 'w'];
+
+    return alphaL[alphaL.length - numV + i];
+}
+
+// Initializes the graph. Handles don't cares.
+function graph(DC) {
+    let graphArr = [];
+    doneList.forEach(function (value) {
+        let newDecComb = [];
+        for (let i = 0; i < value.decComb.length; i++) {
+            if (!DC.includes(Number(value.decComb[i])))
+                newDecComb.push(value.decComb[i]);
+        }
+        graphArr.push(newDecComb);
+    });
+
+    return graphArr;
+}
+
+function potentialFcn(element) {
+    let elemCount = [];
+    let pntl = [];
+    let count = 0;
+
+    C.forEach(function (value) {
+        for (let i = 0; i < element.length; i++) {
+            if (element[i].includes("" + value + "")) {
+                count++;
+            }
+        }
+        elemCount.push(count);
+        count = 0;
+    });
+
+    let pntlCount = 0;
+    let pntlPI = false;
+    for (let i = 0; i < element.length; i++) {
+        pntl.push([]);
+        for (let j = 0; j < element[i].length; j++) {
+            let I = C.findIndex(function (value) { if (value == element[i][j]) { return true; } });
+            if (I === -1)
+                pntlCount += 0;
+            else
+                pntlCount += elemCount[I];
+            if (elemCount[I] === 1)
+                pntlPI = true;
+        }
+        pntl[i].push(pntlCount);
+        pntl[i].push(pntlPI);
+        pntl[i].push(i);
+        pntlCount = 0;
+        pntlPI = false;
+    }
+
+    pntl.sort(function (a, b) {
+        if (a[1] && !b[1])
+            return -1;
+        else if (!a[1] && b[1])
+            return 1;
+        else
+            return b[0] - a[0];
+    });
+
+    return pntl;
+
+}
+
+function newGraph(elemArr, indx) {
+    let E = [...elemArr];
+    let Echk = [...E[indx]];
+
+    for (let i = 0; i < elemArr.length; i++) {
+        for (let j = 0; j < elemArr[i].length; j++) {
+            if (Echk.includes(E[i][j])) {
+                E[i][j] = '';
+            }
+        }
+    }
+
+    return E;
+}
+
+function checkElem(elemArr) {
+    for (let i = 0; i < elemArr.length; i++) {
+        for (let j = 0; j < elemArr[i].length; j++) {
+            if (elemArr[i][j] !== '') {
+                check = false;
+                return;
+            }
+        }
+    }
+    check = true;
+    return;
+}
+
+function findBoolExpr() {
+    findANumber();
+
+    let dcA = [];
+
+    for (let i = states.length; i < Math.pow(2, numV); i++) {
+        dcA.push(parseInt(i.toString(2) + "0", 2));
+        dcA.push(parseInt(i.toString(2) + "1", 2));
+    }
+
+    for (let i = 0; i < Asub.length; i++) {
+        let expr = mainBoolOut(Asub[i], dcA);
+        
+        if (i !== Asub.length - 1)
+            expr = "Y" + (Asub.length - i - 2) + " = " + expr;
+        else
+            expr = "Z = " + expr;
+        console.log(expr);
+    }
+
+    return;
+}
+
+function findANumber() {
+    // For tabVals: 0 = current state, 1 = W0, 2 = W1, 3 = Z
+    let decNumW0 = "", decNumW1 = "", decNumZ0 = "", decNumZ1 = "";
+    let contZ = true;
+
+    for (let i = 0; i < numV + 1; i++)
+        Asub.push([]);
+
+    for (let i = 0; i < numV; i++) {
+        for (let j = 0; j < states.length; j++) {
+            if (Number(tabVals[1][j].charAt(i)) === 1) {
+                decNumW0 = "" + tabVals[0][j] + "0";
+                Asub[i].push(parseInt(decNumW0, 2));
+            }
+            if (Number(tabVals[2][j].charAt(i)) === 1) {
+                decNumW1 = "" + tabVals[0][j] + "1";
+                Asub[i].push(parseInt(decNumW1, 2));
+            }
+            if (Number(tabVals[3][j]) === 1 && contZ) {
+                decNumZ0 = "" + tabVals[0][j] + "0";
+                decNumZ1 = "" + tabVals[0][j] + "1";
+                Asub[Asub.length - 1].push(parseInt(decNumZ0, 2));
+                Asub[Asub.length - 1].push(parseInt(decNumZ1, 2));
+            }
+        }
+        contZ = false;
+    }
+
+    return;
+}
