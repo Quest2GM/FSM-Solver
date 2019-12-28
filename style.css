@@ -39,3 +39,24 @@
     border: 1px solid;
     margin: 5px;
 }
+
+form * {
+    display: block;
+    margin: 10px;
+}
+
+textArea {
+    display: none;
+}
+
+.textArea2 {
+    display: none;
+}
+
+#downVeri {
+    display: none;
+}
+
+#downVeri2 {
+    display: none;
+}

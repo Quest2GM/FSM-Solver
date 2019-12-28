@@ -11,6 +11,10 @@ let asynchRad = document.getElementById("asynchRad");
 let binRad = document.getElementById("binRad");
 let OHRad = document.getElementById("OHRad");
 let MOHRad = document.getElementById("MOHRad");
+let txtVerilog = document.getElementById("textArea");
+let txtVerilog2 = document.getElementById("textArea2");
+let downVeri = document.getElementById("downVeri");
+let downVeri2 = document.getElementById("downVeri2");
 
 // Verilog FSM Variables
 let typeBin;    // 0 = binary, 1 = one-hot, 2 = modified one-hot
@@ -104,7 +108,7 @@ function literalAlpha(i) {
 
 function extData() {
 
-    resetVars();
+    //resetVars();
     selectRadio();
 
     for (let i = 2; i < stateTable.rows.length; i++) {
@@ -125,7 +129,7 @@ function extData() {
     // Left Column Functions
     dispState(states, binStates, leftCol);
     dispBinTable(states, binStates, w0, w1, Z, leftCol);
-    //verilogOutput(states, binStates, w0, w1, Z);
+    verilogOutput(states, binStates, w0, w1, Z, txtVerilog);
     findBoolExpr();
 
     // Right Column Functions
@@ -133,6 +137,7 @@ function extData() {
     dispBinTable(minFSMVar[0], minFSMVar[0], minFSMVar[2], minFSMVar[3], minFSMVar[4], rightCol);
     dispState(minFSMVar[0], minFSMVar[1], rightCol);
     dispBinTable(minFSMVar[0], minFSMVar[1], minFSMVar[2], minFSMVar[3], minFSMVar[4], rightCol);
+    verilogOutput(minFSMVar[0], minFSMVar[1], minFSMVar[2], minFSMVar[3], minFSMVar[4], txtVerilog2);
 
     return;
 }
@@ -332,35 +337,35 @@ function padZeros(num) {
     return num;
 }
 
-function verilogOutput(s, bS, wL0, wL1, zL) {
+function verilogOutput(s, bS, wL0, wL1, zL, tx) {
 
     // Verilog Code Output
-    console.log("module FSM (SW, LEDR, KEY);");
-    console.log("   input [9:0] SW;");
-    console.log("   input [0:0] KEY;");
-    console.log("   output [9:0] LEDR;");
-    console.log("   wire W, clock, resetn, Z;");
-    console.log("");
-    console.log("   assign W = SW[1];");
-    console.log("   assign resetn = SW[0];");
-    console.log("   assign clock = KEY[0];");
-    console.log("");
-    console.log("   reg [3:0] y_Q, Y_D;");
+    tx.value += ("module FSM (SW, LEDR, KEY); \n");
+    tx.value += ("   input [9:0] SW; \n");
+    tx.value += ("   input [0:0] KEY; \n");
+    tx.value += ("   output [9:0] LEDR; \n");
+    tx.value += ("   wire W, clock, resetn, Z; \n");
+    tx.value += ("\n");
+    tx.value += ("   assign W = SW[1]; \n");
+    tx.value += ("   assign resetn = SW[0]; \n");
+    tx.value += ("   assign clock = KEY[0]; \n");
+    tx.value += ("\n");
+    tx.value += ("   reg [3:0] y_Q, Y_D; \n");
 
     let parameters = "   parameter ";
     for (let i = 0; i < bS.length; i++) {
         parameters += s[i] + " = " + numV + "\'b" + bS[i] + ", ";
     }
     parameters = parameters.substring(0, parameters.length - 2) + ";";
-    console.log(parameters);
-    console.log("");
-    console.log("   always @ (W, y_Q)");
-    console.log("   begin");
-    console.log("      case(y_Q)");
+    tx.value += (parameters + "\n");
+    tx.value += ("\n");
+    tx.value += ("   always @ (W, y_Q) \n");
+    tx.value += ("   begin \n");
+    tx.value += ("      case(y_Q) \n");
 
     for (let i = 0; i < s.length; i++) {
-        console.log("         " + s[i] + ": if (W) Y_D = " + wL1[i] + ";");
-        console.log("            else Y_D = " + wL0[i] + ";");
+        tx.value += ("         " + s[i] + ": if (W) Y_D = " + wL1[i] + "; \n");
+        tx.value += ("            else Y_D = " + wL0[i] + "; \n");
     }
     let defaultVerilog = "         default: y_D = " + numV + "\'b";
 
@@ -368,22 +373,22 @@ function verilogOutput(s, bS, wL0, wL1, zL) {
         defaultVerilog += "x";
     defaultVerilog += ";";
 
-    console.log(defaultVerilog);
+    tx.value += (defaultVerilog + "\n");
 
-    console.log("      endcase");
-    console.log("   end");
-    console.log("");
+    tx.value += ("      endcase \n");
+    tx.value += ("   end \n");
+    tx.value += ("\n");
     if (synch)
-        console.log("   always @ (posedge clock)");
+        tx.value += ("   always @ (posedge clock) \n");
     else
-        console.log("   always @ (posedge clock, negedge resetn)");
-    console.log("   begin");
-    console.log("      if (resetn == 1'b0)");
-    console.log("         y_Q <= " + initialState + ";");
-    console.log("      else");
-    console.log("         y_Q <= y_D;");
-    console.log("   end");
-    console.log("");
+        tx.value += ("   always @ (posedge clock, negedge resetn) \n");
+    tx.value += ("   begin\n");
+    tx.value += ("      if (resetn == 1'b0)\n");
+    tx.value += ("         y_Q <= " + initialState + ";\n");
+    tx.value += ("      else\n");
+    tx.value += ("         y_Q <= y_D;\n");
+    tx.value += ("   end\n");
+    tx.value += ("\n");
 
     let zVerilog = "   assign Z = ";
     for (let i = 0; i < zL.length; i++) {
@@ -391,13 +396,30 @@ function verilogOutput(s, bS, wL0, wL1, zL) {
             zVerilog += "(y_Q == " + s[i] + ") | ";
     }
     zVerilog = zVerilog.substring(0, zVerilog.length - 3) + ";";
-    console.log(zVerilog);
-    console.log("   assign LEDR[9] = Z;");
-    console.log("   assign LEDR[3:0] = y_Q;");
-    console.log("");
-    console.log("endmodule");
+    tx.value += (zVerilog + "\n");
+    tx.value += ("   assign LEDR[9] = Z;\n");
+    tx.value += ("   assign LEDR[3:0] = y_Q;\n");
+    tx.value += ("\n");
+    tx.value += ("endmodule");
+
+    downVeri.style.display = "block";
+    downVeri2.style.display = "block";
 
     return;
+}
+
+// For Verilog Code Download
+function download(filename, text) {
+    var element = document.createElement('a');
+    element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(text));
+    element.setAttribute('download', filename);
+  
+    element.style.display = 'none';
+    document.body.appendChild(element);
+  
+    element.click();
+  
+    document.body.removeChild(element);
 }
 
 // ------------------------

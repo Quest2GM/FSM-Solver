@@ -32,20 +32,20 @@
     </table>
     <br>
 
-    <button id="addST" , onclick="addRow()">+</button>  
+    <button id="addST" , onclick="addRow()">+</button>
     <button id="delST" , onclick="delRow()">−</button>
     <br> <br>
 
-    <input id="synchRad", type="radio", name="synchronous"> Synch Reset
+    <input id="synchRad" , type="radio" , name="synchronous"> Synch Reset
     <br>
-    <input id="asynchRad", type="radio", name="synchronous"> Asynch Reset
+    <input id="asynchRad" , type="radio" , name="synchronous"> Asynch Reset
 
     <br> <br>
-    <input id="binRad", type="radio", name="binType"> Binary
+    <input id="binRad" , type="radio" , name="binType"> Binary
     <br>
-    <input id="OHRad", type="radio", name="binType"> One-Hot
+    <input id="OHRad" , type="radio" , name="binType"> One-Hot
     <br>
-    <input id="MOHRad", type="radio", name="binType"> Modified One-Hot
+    <input id="MOHRad" , type="radio" , name="binType"> Modified One-Hot
 
     <br> <br>
     <button id="delST" , onclick="extData()"> Solve </button>
@@ -55,10 +55,16 @@
     <div class="vl"></div>
     <div id="main">
         <div id="leftCol">
-            Solve FSM
+            <form onsubmit="download('fsmVerilogFull.v', this['textArea'].value)">
+                <textarea id="textArea"></textarea>
+                <input id="downVeri" type="submit" value="Download Verilog">
+            </form>
         </div>
         <div id="rightCol">
-            State Minimize and Then Solve FSM
+            <form onsubmit="download('fsmVerilogMin.v', this['textArea2'].value)">
+                <textarea id="textArea2"></textarea>
+                <input id="downVeri2" type="submit" value="Download Verilog">
+            </form>
         </div>
     </div>
 
