@@ -6,8 +6,8 @@
 //let A = [4, 6, 9, 10, 11, 13];  // Input List
 //let DC = [2, 12, 15];           // Don't Cares
 //let DC = [];
-let A = [8, 9];
-let DC = [10, 11, 12, 13, 14, 15];
+let A = [0, 1, 2, 4, 5, 6, 10, 13, 14, 18, 21, 22, 24, 26, 29, 30];
+let DC = [];
 
 let B = [];                 // Iteration list
 let notDoneList = [];       // Another iteration list, supporting B
@@ -217,8 +217,9 @@ function calcLogic() {
 
 // Outputs the literals in alphabetical order
 function literal(i) {
-    let alpha = ['(y2)', '(y1)', '(y0)', 'w', 'e', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z'];
-    return alpha[i];
+    let alphaL = ['(y25)', '(y24)', '(y23)', '(y22)', '(y21)', '(y20)', '(y19)', '(y18)', '(y17)', '(y16)', '(y15)', '(y14)', '(y13)', '(y12)', '(y11)', '(y10)', '(y9)', '(y8)', '(y7)', '(y6)', '(y5)', '(y4)', '(y3)', '(y2)', '(y1)', '(y0)', 'w'];
+
+    return alphaL[alphaL.length - numV + i];
 }
 
 // Initializes the graph. Handles don't cares.

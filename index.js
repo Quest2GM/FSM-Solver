@@ -32,18 +32,18 @@ let newState = [[], []];
 let stateTableRC = 1;
 
 // Boolean Expression Variables
-// let A = [];
-// let DC = [];
-
-let C = [];                 // Concatenation of both A and don't cares
-let B = [];                 // Iteration list
-let notDoneList = [];       // Another iteration list, supporting B
-let doneList = [];          // The elements which go through to the final stage
-let doneIter = false;       // Done iterations?
-let check = false;          // Checks whether all 'x's in graph are crossed
-let boolExpr = "";          // Final boolean expression
+let C = [];                     // Concatenation of both A and don't cares
+let B = [];                     // Iteration list
+let notDoneList = [];           // Another iteration list, supporting B
+let doneList = [];              // The elements which go through to the final stage
+let doneIter = false;           // Done iterations?
+let check = false;              // Checks whether all 'x's in graph are crossed
+let boolExpr = "";              // Final boolean expression
 let tabVals = [[], [], [], []]; // Binary Table of Values
-let Asub = [];              // A subsitute for preliminary calculation
+let Asub = [];                  // A subsitute for preliminary calculation
+
+// Canvas Variables
+let lCtx, rCtx;                 // The type of context being used; 2D in this case
 
 // __________________________________________________________________
 
@@ -138,6 +138,9 @@ function extData() {
     dispState(minFSMVar[0], minFSMVar[1], rightCol);
     dispBinTable(minFSMVar[0], minFSMVar[1], minFSMVar[2], minFSMVar[3], minFSMVar[4], rightCol);
     verilogOutput(minFSMVar[0], minFSMVar[1], minFSMVar[2], minFSMVar[3], minFSMVar[4], txtVerilog2);
+
+    // Circuit Build
+    initializeCirc();
 
     return;
 }
@@ -305,9 +308,13 @@ function dispBinTable(s, bS, w0Min, w1Min, zMin, xCol) {
 // Finds the max power of the elements
 // Pads and finds binary translation of each element in the state list (binary translation is based on typeBin)
 function binTrans(S, X) {
+    // Reset numV
+    numV = 0;
+
     if (typeBin === 0) {
-        while (S.length - 1 >= Math.pow(2, numV))
+        while (S.length >= Math.pow(2, numV))
             numV++;
+        numV--;
         for (let i = 0; i < S.length; i++)
             X.push(padZeros(i.toString(2)));
     } else if (typeBin === 1) {
@@ -340,17 +347,17 @@ function padZeros(num) {
 function verilogOutput(s, bS, wL0, wL1, zL, tx) {
 
     // Verilog Code Output
-    tx.value += ("module FSM (SW, LEDR, KEY); \n");
-    tx.value += ("   input [9:0] SW; \n");
-    tx.value += ("   input [0:0] KEY; \n");
-    tx.value += ("   output [9:0] LEDR; \n");
-    tx.value += ("   wire W, clock, resetn, Z; \n");
+    tx.value += ("module FSM (SW, LEDR, KEY);\n");
+    tx.value += ("   input [9:0] SW;\n");
+    tx.value += ("   input [0:0] KEY;\n");
+    tx.value += ("   output [9:0] LEDR;\n");
+    tx.value += ("   wire W, clock, resetn, Z;\n");
     tx.value += ("\n");
-    tx.value += ("   assign W = SW[1]; \n");
-    tx.value += ("   assign resetn = SW[0]; \n");
-    tx.value += ("   assign clock = KEY[0]; \n");
+    tx.value += ("   assign W = SW[1];\n");
+    tx.value += ("   assign resetn = SW[0];\n");
+    tx.value += ("   assign clock = KEY[0];\n");
     tx.value += ("\n");
-    tx.value += ("   reg [3:0] y_Q, Y_D; \n");
+    tx.value += ("   reg [3:0] y_Q, Y_D;\n");
 
     let parameters = "   parameter ";
     for (let i = 0; i < bS.length; i++) {
@@ -359,13 +366,13 @@ function verilogOutput(s, bS, wL0, wL1, zL, tx) {
     parameters = parameters.substring(0, parameters.length - 2) + ";";
     tx.value += (parameters + "\n");
     tx.value += ("\n");
-    tx.value += ("   always @ (W, y_Q) \n");
-    tx.value += ("   begin \n");
-    tx.value += ("      case(y_Q) \n");
+    tx.value += ("   always @ (W, y_Q)\n");
+    tx.value += ("   begin\n");
+    tx.value += ("      case(y_Q)\n");
 
     for (let i = 0; i < s.length; i++) {
-        tx.value += ("         " + s[i] + ": if (W) Y_D = " + wL1[i] + "; \n");
-        tx.value += ("            else Y_D = " + wL0[i] + "; \n");
+        tx.value += ("         " + s[i] + ": if (W) Y_D = " + wL1[i] + ";\n");
+        tx.value += ("            else Y_D = " + wL0[i] + ";\n");
     }
     let defaultVerilog = "         default: y_D = " + numV + "\'b";
 
@@ -375,13 +382,13 @@ function verilogOutput(s, bS, wL0, wL1, zL, tx) {
 
     tx.value += (defaultVerilog + "\n");
 
-    tx.value += ("      endcase \n");
-    tx.value += ("   end \n");
+    tx.value += ("      endcase\n");
+    tx.value += ("   end\n");
     tx.value += ("\n");
     if (synch)
-        tx.value += ("   always @ (posedge clock) \n");
+        tx.value += ("   always @ (posedge clock)\n");
     else
-        tx.value += ("   always @ (posedge clock, negedge resetn) \n");
+        tx.value += ("   always @ (posedge clock, negedge resetn)\n");
     tx.value += ("   begin\n");
     tx.value += ("      if (resetn == 1'b0)\n");
     tx.value += ("         y_Q <= " + initialState + ";\n");
@@ -411,15 +418,17 @@ function verilogOutput(s, bS, wL0, wL1, zL, tx) {
 // For Verilog Code Download
 function download(filename, text) {
     var element = document.createElement('a');
-    element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(text));
+    element.setAttribute('href', 'data:text/plain;charset=utf-8;javascript:void(0),' + encodeURIComponent(text));
     element.setAttribute('download', filename);
-  
+
     element.style.display = 'none';
     document.body.appendChild(element);
-  
+
     element.click();
-  
+
     document.body.removeChild(element);
+
+    return;
 }
 
 // ------------------------
@@ -902,14 +911,20 @@ function findBoolExpr() {
 
     let dcA = [];
 
-    for (let i = states.length; i < Math.pow(2, numV); i++) {
-        dcA.push(parseInt(i.toString(2) + "0", 2));
-        dcA.push(parseInt(i.toString(2) + "1", 2));
+    if (typeBin === 0) {
+        for (let i = states.length; i < Math.pow(2, numV); i++) {
+            dcA.push(parseInt(i.toString(2) + "0", 2));
+            dcA.push(parseInt(i.toString(2) + "1", 2));
+        }
+    } else if (typeBin === 1) {
+        dcA = [10, 11, 12, 13, 14, 15];
+    } else {
+        dcA = [];
     }
 
     for (let i = 0; i < Asub.length; i++) {
         let expr = mainBoolOut(Asub[i], dcA);
-        
+
         if (i !== Asub.length - 1)
             expr = "Y" + (Asub.length - i - 2) + " = " + expr;
         else
@@ -949,4 +964,116 @@ function findANumber() {
     }
 
     return;
+}
+
+// ------------------------
+// Circuit Build
+// ------------------------
+
+function initializeCirc() {
+    let lCanv = document.createElement("canvas");
+    let rCanv = document.createElement("canvas");
+    let lContext = lCanv.getContext("2d");
+    let rContext = rCanv.getContext("2d");
+
+    lCanv.id = "lCanv"; rCanv.id = "rCanv";
+    lCanv.height = "500"; lCanv.width = "1500";
+    rCanv.height = "100"; rCanv.width = "100";
+    lCanv.style.border = "1px solid #000000;"; rCanv.style.border = "1px solid #000000;";
+
+    lCtx = lCanv.getContext("2d");
+    rCtx = rCanv.getContext("2d");
+
+    leftCol.appendChild(lCanv);
+    rightCol.appendChild(rCanv);
+
+    let x = new orGate(120, 20);
+    x.buildOr();
+
+    let y = new andGate(50, 50);
+    y.buildAnd();
+
+    return;
+
+}
+
+class dFF {
+    constructor(posX, posY, syn) {
+        this.posX = posX;
+        this.posY = posY;
+        this.syn = syn;
+    }
+
+    buildDFF() {
+        lCtx.beginPath();
+        lCtx.moveTo(this.posX, this.posY); lCtx.lineTo(this.posX + 70, this.posY);
+        lCtx.moveTo(this.posX + 70, this.posY); lCtx.lineTo(this.posX + 70, this.posY + 80);
+        lCtx.moveTo(this.posX + 70, this.posY + 80); lCtx.lineTo(this.posX, this.posY + 80);
+        lCtx.moveTo(this.posX, this.posY + 80); lCtx.lineTo(this.posX, this.posY);
+        lCtx.lineWidth = 2;
+        lCtx.strokeStyle = "000000";
+        lCtx.stroke();
+
+        lCtx.font = "18px Cambria";
+        lCtx.fillText("D", this.posX + 8, this.posY + 30);
+        lCtx.fillText("Q", this.posX + 50, this.posY + 30);
+        lCtx.fillText("Q\'", this.posX + 50, this.posY + 65);
+
+        lCtx.moveTo(this.posX, this.posY + 50); lCtx.lineTo(this.posX + 15, this.posY + 60);
+        lCtx.moveTo(this.posX + 15, this.posY + 60); lCtx.lineTo(this.posX, this.posY + 70);
+        lCtx.lineWidth = 1;
+        lCtx.strokeStyle = "000000";
+        lCtx.stroke();
+
+        if (!this.syn) {
+            lCtx.beginPath();
+            lCtx.arc(this.posX + 35, this.posY + 86, 5, 0, 2 * Math.PI);
+            lCtx.strokeStyle = "000000"; lCtx.stroke();
+        }
+
+    }
+}
+
+class andGate {
+    constructor (posX, posY) {
+        this.posX = posX;
+        this.posY = posY;
+    }
+
+    buildAnd() {
+        lCtx.beginPath();
+        lCtx.arc(this.posX, this.posY, 30, 1.5 * Math.PI, 0.5 * Math.PI, false);
+        lCtx.moveTo(this.posX, this.posY - 30); lCtx.lineTo(this.posX - 20, this.posY - 30);
+        lCtx.moveTo(this.posX, this.posY + 30); lCtx.lineTo(this.posX - 20, this.posY + 30);
+        lCtx.moveTo(this.posX - 20, this.posY + 30); lCtx.lineTo(this.posX - 20, this.posY - 30);
+        lCtx.moveTo(this.posX + 30, this.posY); lCtx.lineTo(this.posX + 50, this.posY);
+        lCtx.strokeStyle = "000000"; lCtx.stroke();
+    }
+}
+
+class orGate {
+    constructor (posX, posY) {
+        this.posX = posX;
+        this.posY = posY;
+    }
+
+    buildOr() {
+        lCtx.beginPath();
+        lCtx.moveTo(this.posX, this.posY);
+        lCtx.bezierCurveTo(this.posX + 20, this.posY, this.posX + 20, this.posY + 60, this.posX, this.posY + 60);
+        lCtx.moveTo(this.posX, this.posY); lCtx.lineTo(this.posX + 30, this.posY);
+        lCtx.moveTo(this.posX, this.posY + 60); lCtx.lineTo(this.posX + 30, this.posY + 60);
+        lCtx.moveTo(this.posX + 30, this.posY);
+        lCtx.bezierCurveTo(this.posX + 60, this.posY, this.posX + 70, this.posY + 30, this.posX + 70, this.posY + 30);
+        lCtx.moveTo(this.posX + 30, this.posY + 60);
+        lCtx.bezierCurveTo(this.posX + 60, this.posY + 60, this.posX + 70, this.posY + 30, this.posX + 70, this.posY + 30);
+        lCtx.moveTo(this.posX + 70, this.posY + 30); lCtx.lineTo(this.posX + 90, this.posY + 30);
+        lCtx.stroke();
+    }
+}
+
+// __________________________________________________________________
+
+function ex() {
+    console.log(mainBoolOut([9], [10, 11, 12, 13, 14, 15]));
 }
