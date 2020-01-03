@@ -1,5 +1,5 @@
 
-let states = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I'];
+let states = ['A', 'B', 'C', 'D'];
 let binStates = ['0000', '0001', '0010', '0011', '0100', '0101', '0110', '0111', '1000'];
 let Z = [1, 1, 1, 0, 0, 0, 0, 1, 1];
 let w0 = ['I', 'B', 'C', 'I', 'D', 'I', 'E', 'H', 'A'];
@@ -60,10 +60,12 @@ function eqStateChange(L, R, C, M) {
     return R;
 }
 
-let tabVals = [["0000", "0001", "0010", "0011", "0100", "0101", "0110", "0111", "1000"], ["1000", "0001", "0010", "1000", "0011", "1000", "0100", "0111", "0000"], ["0010", "1000", "0110", "0010", "0100", "0010", "0101", "0000", "0010"], ["1", "1", "1", "0", "0", "0", "0", "1", "1"]];
+let tabVals = [["0001", "0010", "0100", "1000"], ["0001", "0100", "0001", "0100"], ["0010", "0010", "1000", "0010"], ["0", "0", "0", "1"]];
 
 let numV = 4;
 let Asub = [[], [], [], [], []];
+let AsubW0 = [[], [], [], [], []];
+let AsubW1 = [[], [], [], [], []];
 
 function findANumber() {
     // For tabVals: 0 = current state, 1 = W0, 2 = W1, 3 = Z
@@ -92,3 +94,86 @@ function findANumber() {
 
     return;
 }
+
+function findOneHot() {
+    let contZ = true;
+
+    for (let i = 0; i < numV; i++) {
+        for (let j = 0; j < states.length; j++) {
+            if (Number(tabVals[1][j].charAt(i)) === 1) {
+                AsubW0[i].push(j);
+            }
+            if (Number(tabVals[2][j].charAt(i)) === 1) {
+                AsubW1[i].push(j);
+            }
+            if (Number(tabVals[3][j]) === 1 && contZ) {
+                AsubW0[AsubW0.length - 1].push(j);
+                AsubW1[AsubW1.length - 1].push(j);
+            }
+        }
+        contZ = false;
+    }
+
+    let expr = "";
+    let loc;
+    let typeBin = 1;
+
+    // Expressions for Y
+    for (let i = 0; i < AsubW0.length - 1; i++) {
+        expr = "Y" + (numV - i - 1) + " = ";
+
+        if (AsubW0[i].length === 0 && AsubW1[i].length === 0) {
+            expr += "0";
+        } else {
+            for (let j = 0; j < AsubW0[i].length; j++) {
+                if (AsubW1[i].includes(AsubW0[i][j])) {
+                    if (typeBin === 2 && AsubW0[i][j] === 0)
+                        expr += "(y" + (AsubW0[i][j]) + ")' + ";
+                    else
+                        expr += "(y" + (AsubW0[i][j]) + ") + ";
+                    loc = AsubW1[i].findIndex(function (value) {
+                        if (value === AsubW0[i][j])
+                            return true;
+                    });
+                    AsubW1[i] = AsubW1[i].slice(0, loc).concat(AsubW1[i].slice(loc + 1, AsubW1[i].length));
+                }
+                else {
+                    if (typeBin === 2 && AsubW0[i][j] === 0)
+                        expr += "(y" + (AsubW0[i][j]) + ")'w' + ";
+                    else
+                        expr += "(y" + (AsubW0[i][j]) + ")w' + ";
+                }
+            }
+
+            for (let j = 0; j < AsubW1[i].length; j++) {
+                if (typeBin === 2 && AsubW1[i][j] === 0)
+                    expr += "(y" + (AsubW1[i][j]) + ")'w + ";
+                else
+                    expr += "(y" + (AsubW1[i][j]) + ")w + ";
+            }
+        }
+
+        if (expr.charAt(expr.length - 1) === " ")
+            expr = expr.substring(0, expr.length - 3);
+
+        console.log(expr);
+    }
+
+    // Expressions for Z
+    expr = "Z = ";
+    if (AsubW0[AsubW0.length - 1].length === 0) {
+        expr += "0";
+    } else {
+        for (let i = 0; i < AsubW0[AsubW0.length - 1].length; i++) {
+            expr += "(y" + (AsubW0[AsubW0.length - 1][i]) + ") + ";
+        }
+    }
+
+    if (expr.charAt(expr.length - 1) === " ")
+        expr = expr.substring(0, expr.length - 3);
+    console.log(expr);
+
+    return;
+}
+
+findOneHot();

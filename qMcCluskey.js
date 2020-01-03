@@ -1,13 +1,24 @@
 /* This algorithm simplifies boolean logic using the Quinn-McCluskey Algorithm */
 
-//let A = [0, 4, 5, 7, 8, 11, 12, 15];
-//let A = [0, 1, 3, 4, 6, 7, 8, 9, 11, 12, 13, 14, 15]
-//let A = [0, 1, 2, 3, 6, 8, 9, 10, 11, 17, 20, 21, 23, 25, 28, 30, 31];
-//let A = [4, 6, 9, 10, 11, 13];  // Input List
-//let DC = [2, 12, 15];           // Don't Cares
-//let DC = [];
-let A = [0, 1, 2, 4, 5, 6, 10, 13, 14, 18, 21, 22, 24, 26, 29, 30];
-let DC = [];
+// One-Hot Case One
+// let A = [4, 16];
+// let DC = [6, 8, 10, 12, 14, 18, 20, 22, 24, 26, 28, 30]
+
+// One-Hot Case Two
+// let A = [9];
+// let DC = [11, 13, 15];
+
+// One-Hot Case Three
+// let A = [3, 5, 17];
+// let DC = [7, 9, 11, 13, 15, 19, 21, 23, 25, 27, 29, 31];
+
+// One-Hot Case Four
+// let A = [2, 8];
+// let DC = [4, 6, 10, 12, 14, 16, 18, 20, 22, 24, 26, 28, 30];
+
+// One-Hot Case Five
+let A = [];
+let DC = [6, 7, 8, 10, 12, 13, 14, 15, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31];
 
 let B = [];                 // Iteration list
 let notDoneList = [];       // Another iteration list, supporting B

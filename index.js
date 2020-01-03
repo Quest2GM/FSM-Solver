@@ -41,6 +41,8 @@ let check = false;              // Checks whether all 'x's in graph are crossed
 let boolExpr = "";              // Final boolean expression
 let tabVals = [[], [], [], []]; // Binary Table of Values
 let Asub = [];                  // A subsitute for preliminary calculation
+let AsubW0 = [[], [], [], [], []];  // For finding boolean expression for one-hot codes
+let AsubW1 = [[], [], [], [], []];
 
 // Canvas Variables
 let lCtx, rCtx;                 // The type of context being used; 2D in this case
@@ -907,29 +909,30 @@ function checkElem(elemArr) {
 }
 
 function findBoolExpr() {
-    findANumber();
-
-    let dcA = [];
-
     if (typeBin === 0) {
+        let dcA = [];
+        findANumber();
         for (let i = states.length; i < Math.pow(2, numV); i++) {
             dcA.push(parseInt(i.toString(2) + "0", 2));
             dcA.push(parseInt(i.toString(2) + "1", 2));
         }
-    } else if (typeBin === 1) {
-        dcA = [10, 11, 12, 13, 14, 15];
+
+        for (let i = 0; i < Asub.length; i++) {
+            let expr;
+
+            if (Asub[i].length === 0)
+                expr = "0";
+            else
+                expr = mainBoolOut(Asub[i], dcA);
+    
+            if (i !== Asub.length - 1)
+                expr = "Y" + (Asub.length - i - 2) + " = " + expr;
+            else
+                expr = "Z = " + expr;
+            console.log(expr);
+        }
     } else {
-        dcA = [];
-    }
-
-    for (let i = 0; i < Asub.length; i++) {
-        let expr = mainBoolOut(Asub[i], dcA);
-
-        if (i !== Asub.length - 1)
-            expr = "Y" + (Asub.length - i - 2) + " = " + expr;
-        else
-            expr = "Z = " + expr;
-        console.log(expr);
+        findOneHot();
     }
 
     return;
@@ -966,36 +969,88 @@ function findANumber() {
     return;
 }
 
+function findOneHot() {
+    let contZ = true;
+    let expr = "";
+    let loc;
+
+    for (let i = 0; i < numV; i++) {
+        for (let j = 0; j < states.length; j++) {
+            if (Number(tabVals[1][j].charAt(i)) === 1) {
+                AsubW0[i].push(j);
+            }
+            if (Number(tabVals[2][j].charAt(i)) === 1) {
+                AsubW1[i].push(j);
+            }
+            if (Number(tabVals[3][j]) === 1 && contZ) {
+                AsubW0[AsubW0.length - 1].push(j);
+                AsubW1[AsubW1.length - 1].push(j);
+            }
+        }
+        contZ = false;
+    }
+
+    // Expressions for Y
+    for (let i = 0; i < AsubW0.length - 1; i++) {
+        expr = "Y" + (numV - i - 1) + " = ";
+
+        if (AsubW0[i].length === 0 && AsubW1[i].length === 0) {
+            expr += "0";
+        } else {
+            for (let j = 0; j < AsubW0[i].length; j++) {
+                if (AsubW1[i].includes(AsubW0[i][j])) {
+                    if (typeBin === 2 && AsubW0[i][j] === 0)
+                        expr += "(y" + (AsubW0[i][j]) + ")' + ";
+                    else
+                        expr += "(y" + (AsubW0[i][j]) + ") + ";
+                    loc = AsubW1[i].findIndex(function (value) {
+                        if (value === AsubW0[i][j])
+                            return true;
+                    });
+                    AsubW1[i] = AsubW1[i].slice(0, loc).concat(AsubW1[i].slice(loc + 1, AsubW1[i].length));
+                }
+                else {
+                    if (typeBin === 2 && AsubW0[i][j] === 0)
+                        expr += "(y" + (AsubW0[i][j]) + ")'w' + ";
+                    else
+                        expr += "(y" + (AsubW0[i][j]) + ")w' + ";
+                }
+            }
+
+            for (let j = 0; j < AsubW1[i].length; j++) {
+                if (typeBin === 2 && AsubW1[i][j] === 0)
+                    expr += "(y" + (AsubW1[i][j]) + ")'w + ";
+                else
+                    expr += "(y" + (AsubW1[i][j]) + ")w + ";
+            }
+        }
+
+        if (expr.charAt(expr.length - 1) === " ")
+            expr = expr.substring(0, expr.length - 3);
+
+        console.log(expr);
+    }
+
+    // Expressions for Z
+    expr = "Z = ";
+    if (AsubW0[AsubW0.length - 1].length === 0) {
+        expr += "0";
+    } else {
+        for (let i = 0; i < AsubW0[AsubW0.length - 1].length; i++) {
+            expr += "(y" + (AsubW0[AsubW0.length - 1][i]) + ") + ";
+        }
+    }
+
+    if (expr.charAt(expr.length - 1) === " ")
+        expr = expr.substring(0, expr.length - 3);
+    console.log(expr);
+
+    return;
+}
+
 // ------------------------
 // Circuit Build
 // ------------------------
-
-function initializeCirc() {
-    let lCanv = document.createElement("canvas");
-    let rCanv = document.createElement("canvas");
-    let lContext = lCanv.getContext("2d");
-    let rContext = rCanv.getContext("2d");
-
-    lCanv.id = "lCanv"; rCanv.id = "rCanv";
-    lCanv.height = "500"; lCanv.width = "1500";
-    rCanv.height = "100"; rCanv.width = "100";
-    lCanv.style.border = "1px solid #000000;"; rCanv.style.border = "1px solid #000000;";
-
-    lCtx = lCanv.getContext("2d");
-    rCtx = rCanv.getContext("2d");
-
-    leftCol.appendChild(lCanv);
-    rightCol.appendChild(rCanv);
-
-    let x = new orGate(120, 20);
-    x.buildOr();
-
-    let y = new andGate(50, 50);
-    y.buildAnd();
-
-    return;
-
-}
 
 class dFF {
     constructor(posX, posY, syn) {
@@ -1072,8 +1127,31 @@ class orGate {
     }
 }
 
-// __________________________________________________________________
+function initializeCirc() {
+    let lCanv = document.createElement("canvas");
+    let rCanv = document.createElement("canvas");
+    let lContext = lCanv.getContext("2d");
+    let rContext = rCanv.getContext("2d");
 
-function ex() {
-    console.log(mainBoolOut([9], [10, 11, 12, 13, 14, 15]));
+    lCanv.id = "lCanv"; rCanv.id = "rCanv";
+    lCanv.height = "500"; lCanv.width = "1500";
+    rCanv.height = "100"; rCanv.width = "100";
+    lCanv.style.border = "1px solid #000000;"; rCanv.style.border = "1px solid #000000;";
+
+    lCtx = lCanv.getContext("2d");
+    rCtx = rCanv.getContext("2d");
+
+    leftCol.appendChild(lCanv);
+    rightCol.appendChild(rCanv);
+
+    let x = new orGate(120, 20);
+    x.buildOr();
+
+    let y = new andGate(50, 50);
+    y.buildAnd();
+
+    return;
+
 }
+
+// __________________________________________________________________
