@@ -36,6 +36,7 @@
                 <td> <input class="inBox" , type="text"> </td>
             </tr>
         </table>
+        <p id="errorAlert"></p>
     </div>
     
     <br>
@@ -59,18 +60,13 @@
     <input id="MOHRad" , type="radio" , name="binType"> Modified One-Hot
 
     <br> <br>
-    <button class="butt2" id="delST" , onclick="extData()"> Solve </button>
+    <button class="butt2" id="delST" , onclick="checkValid()"> Solve </button>
     <br> <br>
 
     <!-- Solve Area -->
     <div id="main">
         <div id="leftCol">
-            <button id="downVeri" onclick="download('fsmVerilogMain.v', textArea.value)"> Download Verilog </button>
             <textarea id="textArea"></textarea>
-        </div>
-        <div id="rightCol">
-            <button id="downVeri2" onclick="download('fsmVerilogMin.v', textArea2.value)"> Download Verilog </button>
-            <textarea id="textArea2"></textarea>
         </div>
     </div>
 

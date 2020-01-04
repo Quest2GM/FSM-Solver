@@ -72,27 +72,6 @@ header {
     margin: 10px auto;
 }
 
-/* #leftCol {
-    background-color: #FFFFFF;
-    width: 50%;
-    min-height: 1000px;
-    float: left;
-}
-
-#rightCol {
-    background-color: #FFFFFF;
-    min-height: 1000px;
-} */
-/* 
-.vl {
-    border-left: 1px solid black;
-    height: 1000px;
-    position: absolute;
-    left: 50%;
-    margin-left: -20px;
-    top: 150;
-} */
-
 .stateTable {
     border-collapse: collapse;
     margin: 25px 0;

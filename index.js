@@ -5,16 +5,14 @@
 // DOM Variables
 let stateTable = document.getElementsByClassName("stateTable")[0];
 let leftCol = document.getElementById("leftCol");
-let rightCol = document.getElementById("rightCol");
 let synchRad = document.getElementById("synchRad");
 let asynchRad = document.getElementById("asynchRad");
 let binRad = document.getElementById("binRad");
 let OHRad = document.getElementById("OHRad");
 let MOHRad = document.getElementById("MOHRad");
 let txtVerilog = document.getElementById("textArea");
-let txtVerilog2 = document.getElementById("textArea2");
-let downVeri = document.getElementById("downVeri");
-let downVeri2 = document.getElementById("downVeri2");
+let buttonTag = document.createElement("button");
+let errorAlert = document.getElementById("errorAlert");
 
 // Verilog FSM Variables
 let typeBin;    // 0 = binary, 1 = one-hot, 2 = modified one-hot
@@ -110,9 +108,42 @@ function literalAlpha(i) {
     return alpha[i];
 }
 
+function checkValid() {
+    let notValid = false;
+    for (let i = 2; i < stateTable.rows.length; i++) {
+        states.push(literalAlpha(i - 2));
+    }
+    for (let i = 2; i < stateTable.rows.length; i++) {
+        for (let j = 1; j < 4; j++) {
+            if (stateTable.rows[i].cells[j].children[0].value === "") {
+                errorAlert.textContent = "Some cells in the state table are blank!";
+                notValid = true;
+            } else if (!states.includes(stateTable.rows[i].cells[j].children[0].value) && j !== 3) {
+                errorAlert.textContent = "States must be captialized, and included in the current state column. Outputs can only be 0 or 1!";
+                stateTable.rows[i].cells[j].children[0].style.color = "red";
+                notValid = true;
+            } else if (j === 3 && stateTable.rows[i].cells[j].children[0].value !== "0" && stateTable.rows[i].cells[j].children[0].value !== "1") {
+                errorAlert.textContent = "States must be captialized, and included in the current state column. Outputs can only be 0 or 1!";
+                stateTable.rows[i].cells[j].children[0].style.color = "red";
+                notValid = true;
+            }
+        }
+    }
+
+    if (!notValid) {
+        for (let i = 2; i < stateTable.rows.length; i++) {
+            for (let j = 1; j < 4; j++) {
+                stateTable.rows[i].cells[j].children[0].style.color = "black";
+            }
+        }
+        errorAlert.textContent = "";
+        extData();
+    }
+}
+
 function extData() {
 
-    //resetVars();
+    resetVars();
     selectRadio();
 
     for (let i = 2; i < stateTable.rows.length; i++) {
@@ -133,13 +164,8 @@ function extData() {
     let hrTag = document.createElement("hr");
     leftCol.appendChild(hrTag);
 
-    let pTag = document.createElement("p");
-    pTag.textContent = "Solve FSM";
-    pTag.setAttribute("class", "headP");
-    leftCol.appendChild(pTag);
-
     // Left Column Functions
-    pTag = document.createElement("p");
+    let pTag = document.createElement("p");
     pTag.textContent = "Step One: State Code Assignment";
     pTag.setAttribute("class", "subP");
     leftCol.appendChild(pTag);
@@ -149,7 +175,7 @@ function extData() {
     pTag.textContent = "Step Two: State Assignment Table";
     pTag.setAttribute("class", "subP");
     leftCol.appendChild(pTag);
-    dispBinTable(states, binStates, w0, w1, Z, leftCol);
+    dispBinTable(states, binStates, w0, w1, Z, leftCol, true);
 
     pTag = document.createElement("p");
     pTag.textContent = "Step Three: Derive Boolean Logic";
@@ -162,47 +188,16 @@ function extData() {
     pTag.setAttribute("class", "subP");
     leftCol.appendChild(pTag);
     verilogOutput(states, binStates, w0, w1, Z, txtVerilog);
-
-
-    hrTag = document.createElement("hr");
-    leftCol.appendChild(hrTag);
+    buttonTag.textContent = "Download Verilog";
+    buttonTag.setAttribute("class", "butt");
+    leftCol.appendChild(buttonTag);
 
     pTag = document.createElement("p");
-    pTag.textContent = "State Minimize and Solve FSM";
-    pTag.setAttribute("class", "headP");
-    rightCol.appendChild(pTag);
-
-    // Right Column Functions
-    pTag = document.createElement("p");
-    pTag.textContent = "Step One: Minimize State Table";
+    pTag.textContent = "Step Five: Minimize State Table";
     pTag.setAttribute("class", "subP");
-    rightCol.appendChild(pTag);
+    leftCol.appendChild(pTag);
     let minFSMVar = minFSM();
-    dispBinTable(minFSMVar[0], minFSMVar[0], minFSMVar[2], minFSMVar[3], minFSMVar[4], rightCol);
-
-    pTag = document.createElement("p");
-    pTag.textContent = "Step Two: State Code Assignment";
-    pTag.setAttribute("class", "subP");
-    rightCol.appendChild(pTag);
-    dispState(minFSMVar[0], minFSMVar[1], rightCol);
-
-    pTag = document.createElement("p");
-    pTag.textContent = "Step Three: State Assignment Table";
-    pTag.setAttribute("class", "subP");
-    rightCol.appendChild(pTag);
-    dispBinTable(minFSMVar[0], minFSMVar[1], minFSMVar[2], minFSMVar[3], minFSMVar[4], rightCol);
-
-    pTag = document.createElement("p");
-    pTag.textContent = "Step Four: Derive Boolean Logic";
-    pTag.setAttribute("class", "subP");
-    rightCol.appendChild(pTag);
-    findBoolExpr(rightCol);
-
-    pTag = document.createElement("p");
-    pTag.textContent = "Step Five: Verilog";
-    pTag.setAttribute("class", "subP");
-    rightCol.appendChild(pTag);
-    verilogOutput(minFSMVar[0], minFSMVar[1], minFSMVar[2], minFSMVar[3], minFSMVar[4], txtVerilog2);
+    dispBinTable(minFSMVar[0], minFSMVar[0], minFSMVar[2], minFSMVar[3], minFSMVar[4], leftCol, false);
 
     return;
 }
@@ -214,7 +209,8 @@ function extData() {
 function resetVars() {
 
     // Verilog FSM Variables
-    synch = true;
+    typeBin;    // 0 = binary, 1 = one-hot, 2 = modified one-hot
+    synch;   // Synchronous or asynchronous reset
     initialState = "A";
     numV = 0;
     binStates = [];
@@ -226,12 +222,23 @@ function resetVars() {
     states = [];
     newState = [[], []];
 
+    // Boolean Expression Variables
+    C = [];                     // Concatenation of both A and don't cares
+    B = [];                     // Iteration list
+    notDoneList = [];           // Another iteration list, supporting B
+    doneList = [];              // The elements which go through to the final stage
+    doneIter = false;           // Done iterations?
+    check = false;              // Checks whether all 'x's in graph are crossed
+    boolExpr = "";              // Final boolean expression
+    tabVals = [[], [], [], []]; // Binary Table of Values
+    Asub = [];                  // A subsitute for preliminary calculation
+    AsubW0 = [];                // For finding boolean expression for one-hot codes
+    AsubW1 = [];
+    txtVerilog.value = "";
+
     // Remove Existing Tables
     while (leftCol.hasChildNodes()) {
         leftCol.removeChild(leftCol.lastChild);
-    }
-    while (rightCol.hasChildNodes()) {
-        rightCol.removeChild(rightCol.lastChild);
     }
 
     return;
@@ -299,7 +306,7 @@ function dispState(s, bS, xCol) {
 // Display Binary State Table
 // ------------------------
 
-function dispBinTable(s, bS, w0Min, w1Min, zMin, xCol) {
+function dispBinTable(s, bS, w0Min, w1Min, zMin, xCol, tab) {
     let row, h1, h2, h3, h4, c1, c2, c3, c4, tab1;
     let x1, x2, x3, x4;
 
@@ -373,10 +380,12 @@ function dispBinTable(s, bS, w0Min, w1Min, zMin, xCol) {
         row.appendChild(c4);
         tab1.appendChild(row);
 
-        tabVals[0].push("" + x1 + "");
-        tabVals[1].push("" + x2 + "");
-        tabVals[2].push("" + x3 + "");
-        tabVals[3].push("" + x4 + "");
+        if (tab) {
+            tabVals[0].push("" + x1 + "");
+            tabVals[1].push("" + x2 + "");
+            tabVals[2].push("" + x3 + "");
+            tabVals[3].push("" + x4 + "");
+        }
 
     }
 
@@ -398,9 +407,8 @@ function binTrans(S, X) {
     numV = 0;
 
     if (typeBin === 0) {
-        while (S.length >= Math.pow(2, numV))
+        while (S.length > Math.pow(2, numV))
             numV++;
-        numV--;
         for (let i = 0; i < S.length; i++)
             X.push(padZeros(i.toString(2)));
     } else if (typeBin === 1) {
@@ -449,6 +457,7 @@ function verilogOutput(s, bS, wL0, wL1, zL, tx) {
     for (let i = 0; i < bS.length; i++) {
         parameters += s[i] + " = " + numV + "\'b" + bS[i] + ", ";
     }
+
     parameters = parameters.substring(0, parameters.length - 2) + ";";
     tx.value += (parameters + "\n");
     tx.value += ("\n");
@@ -494,9 +503,6 @@ function verilogOutput(s, bS, wL0, wL1, zL, tx) {
     tx.value += ("   assign LEDR[3:0] = y_Q;\n");
     tx.value += ("\n");
     tx.value += ("endmodule");
-
-    downVeri.style.display = "block";
-    downVeri2.style.display = "block";
 
     return;
 }
@@ -652,8 +658,6 @@ function minFSM() {
     minW1 = mW1;
     minZ = mZ;
 
-    minBinStates = binTrans(minStates, minBinStates);
-
     return [minStates, minBinStates, minW0, minW1, minZ];
 }
 
@@ -708,8 +712,8 @@ function initializeBool(A, DC) {
     doneList = [];
     doneIter = false;
     check = false;
-    numV = 0;
     boolExpr = "";
+    numV = 0;
 
     // Concatenate A with Don't Care List
     C = [...A].concat(...DC);
@@ -717,7 +721,8 @@ function initializeBool(A, DC) {
         return a - b;
     });
 
-    // Determines the maximum number of bits required to represent the maximum decimal element in the list
+    // // Determines the maximum number of bits required to represent the maximum decimal element in the list
+
     while (Math.max(...C) >= Math.pow(2, numV))
         numV++;
 }
@@ -990,12 +995,6 @@ function checkElem(elemArr) {
 }
 
 function findBoolExpr(colType) {
-    C = []; B = [];
-    notDoneList = []; doneList = []; doneIter = false;
-    check = false;
-    boolExpr = "";
-    tabVals = [[], [], [], []];
-    Asub = []; AsubW0 = []; AsubW1 = [];
     let dcA = [];
 
     if (typeBin === 0) {
@@ -1004,7 +1003,6 @@ function findBoolExpr(colType) {
             dcA.push(parseInt(i.toString(2) + "0", 2));
             dcA.push(parseInt(i.toString(2) + "1", 2));
         }
-
         for (let i = 0; i < Asub.length; i++) {
             let expr;
             if (Asub[i].length === 0)
@@ -1135,10 +1133,12 @@ function findOneHot() {
         expr += "0";
     } else {
         for (let i = 0; i < AsubW0[AsubW0.length - 1].length; i++) {
-            expr += "(y" + (AsubW0[AsubW0.length - 1][i]) + ") + ";
+            if (AsubW0[AsubW0.length - 1][i] === 0 && typeBin === 2)
+                expr += "(y" + (AsubW0[AsubW0.length - 1][i]) + ")' + ";
+            else
+                expr += "(y" + (AsubW0[AsubW0.length - 1][i]) + ") + ";
         }
     }
-
     if (expr.charAt(expr.length - 1) === " ")
         expr = expr.substring(0, expr.length - 3);
 
@@ -1248,7 +1248,7 @@ function buildCirc() {
     lCanv.style.border = "1px solid #000000;"; rCanv.style.border = "1px solid #000000;";
 
     lCtx = lCanv.getContext("2d"); rCtx = rCanv.getContext("2d");
-    leftCol.appendChild(lCanv); rightCol.appendChild(rCanv);
+    leftCol.appendChild(lCanv);
 
     // Create lines for Y boolean logic
     let x = 10; let bLinePos = [];
@@ -1317,5 +1317,9 @@ function breakExpr(B) {
 
     return bUse;
 }
+
+buttonTag.addEventListener("click", (e) => {
+    download('fsmVerilogMain.v', txtVerilog.value);
+});
 
 // __________________________________________________________________
