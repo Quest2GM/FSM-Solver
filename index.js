@@ -354,7 +354,7 @@ function dispBinTable(s, bS, w0Min, w1Min, zMin, xCol, tab) {
     c3 = document.createElement("td");
     c4 = document.createElement("td");
 
-    c1.textContent = "Y";
+    c1.textContent = "y";
     c1.style.fontWeight = "bold";
     c2.textContent = "w=0 [y]";
     c2.style.fontWeight = "bold";
@@ -461,6 +461,11 @@ function padZeros(num) {
 }
 
 function verilogOutput(s, bS, wL0, wL1, zL, tx) {
+    let rNumV;
+    if (binType === 0)
+        rNumV = numV - 1;
+    else
+        rNumV = numV;
 
     // Verilog Code Output
     tx.value += ("module FSM (SW, LEDR, KEY);\n");
@@ -473,11 +478,11 @@ function verilogOutput(s, bS, wL0, wL1, zL, tx) {
     tx.value += ("   assign resetn = SW[0];\n");
     tx.value += ("   assign clock = KEY[0];\n");
     tx.value += ("\n");
-    tx.value += ("   reg [" + numV + ":0] y_Q, Y_D;\n");
+    tx.value += ("   reg [" + rNumV + ":0] y_Q, Y_D;\n");
 
     let parameters = "   parameter ";
     for (let i = 0; i < bS.length; i++) {
-        parameters += s[i] + " = " + numV + "\'b" + bS[i] + ", ";
+        parameters += s[i] + " = " + rNumV + "\'b" + bS[i] + ", ";
     }
 
     parameters = parameters.substring(0, parameters.length - 2) + ";";
@@ -491,7 +496,7 @@ function verilogOutput(s, bS, wL0, wL1, zL, tx) {
         tx.value += ("         " + s[i] + ": if (W) Y_D = " + wL1[i] + ";\n");
         tx.value += ("            else Y_D = " + wL0[i] + ";\n");
     }
-    let defaultVerilog = "         default: y_D = " + numV + "\'b";
+    let defaultVerilog = "         default: y_D = " + rNumV + "\'b";
 
     for (let i = 0; i < numV; i++)
         defaultVerilog += "x";
