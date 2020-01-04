@@ -477,7 +477,7 @@ function verilogOutput(s, bS, wL0, wL1, zL, tx) {
     tx.value += ("   assign resetn = SW[0];\n");
     tx.value += ("   assign clock = KEY[0];\n");
     tx.value += ("\n");
-    tx.value += ("   reg [" + rNumV + ":0] y_Q, Y_D;\n");
+    tx.value += ("   reg [" + (rNumV - 1) + ":0] y_Q, Y_D;\n");
 
     let parameters = "   parameter ";
     for (let i = 0; i < bS.length; i++) {
