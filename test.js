@@ -176,4 +176,38 @@ function findOneHot() {
     return;
 }
 
-findOneHot();
+function breakExpr(B) {
+    let bUse = [];
+    let bSplit = B.split("+");
+    let numORS = bSplit.length - 1;
+    let numDFF = numV;
+
+    let cAND = 0; let litNum = 0;
+    let litNumArr = [];
+    for (let i = 0; i < numORS + 1; i++) {
+        if (bSplit[i] !== '') {
+            cAND++;
+            for (let j = 0; j < bSplit[i].length; j++) {
+                if (bSplit[i].charAt(j) === '(' || bSplit[i].charAt(j) === ')')
+                    litNum += 0.5;
+            }
+            litNumArr.push(litNum);
+            litNum = 0;
+        }
+    }
+
+    bUse.push(cAND);
+    bUse.push(numORS);
+    bUse.push(numDFF);
+    bUse = bUse.concat(...litNumArr);
+
+    let lits = [];
+    for (let i = 0; i < numV; i++) {
+        lits.push("(y" + i + ")");
+        lits.push("(y" + i + ")'");
+    }
+
+    return [bUse, lits];
+}
+
+breakExpr("(y0)'(y1) + (y2)(y3)(y4) + (y5)");

@@ -9,50 +9,60 @@
     <link rel="stylesheet" href="style.css">
 </head>
 
+<header>
+    NΨ FSM Solver
+</header>
+
 <body>
     <!-- FSM State Table -->
-    <table id="stateTable">
-        <tr>
-            <th>Current State</th>
-            <th colspan=2>Next State</th>
-            <th>Output</th>
-        </tr>
-        <tr>
-            <td class="text"> y </td>
-            <td class="text"> w = 0 </td>
-            <td class="text"> w = 1 </td>
-            <td class="text"> z </td>
-        </tr>
-        <tr>
-            <td class="text"> A </td>
-            <td> <input class="inBox" , type="text"> </td>
-            <td> <input class="inBox" , type="text"> </td>
-            <td> <input class="inBox" , type="text"> </td>
-        </tr>
-    </table>
+    <div>
+        <p class="headP"> State Table </p>
+        <table class="stateTable">
+            <tr>
+                <th>Current State</th>
+                <th colspan=2>Next State</th>
+                <th>Output</th>
+            </tr>
+            <tr>
+                <td class="text"> Y </td>
+                <td class="text"> w = 0 </td>
+                <td class="text"> w = 1 </td>
+                <td class="text"> z </td>
+            </tr>
+            <tr>
+                <td class="inBox"> A </td>
+                <td> <input class="inBox" , type="text"> </td>
+                <td> <input class="inBox" , type="text"> </td>
+                <td> <input class="inBox" , type="text"> </td>
+            </tr>
+        </table>
+    </div>
+    
     <br>
 
-    <button id="addST", onclick="addRow()">+</button>
-    <button id="delST", onclick="delRow()">−</button>
+    <button class="butt" id="addST" , onclick="addRow()">+</button>
+    <button class="butt" id="delST" , onclick="delRow()">−</button>
     <br> <br>
 
-    <input id="synchRad", type="radio", name="synchronous"> Synch Reset
+    <p class="headP"> Settings </p>
+    <p class="subP"> Reset Type </p>
+    <input id="synchRad" , type="radio" , name="synchronous"> Synch Reset
     <br>
-    <input id="asynchRad", type="radio", name="synchronous"> Asynch Reset
+    <input id="asynchRad" , type="radio" , name="synchronous"> Asynch Reset
 
     <br> <br>
-    <input id="binRad", type="radio", name="binType"> Binary
+    <p class="subP"> Binary Type </p>
+    <input id="binRad" , type="radio" , name="binType"> Binary
     <br>
-    <input id="OHRad", type="radio", name="binType"> One-Hot
+    <input id="OHRad" , type="radio" , name="binType"> One-Hot
     <br>
-    <input id="MOHRad", type="radio", name="binType"> Modified One-Hot
+    <input id="MOHRad" , type="radio" , name="binType"> Modified One-Hot
 
     <br> <br>
-    <button id="delST", onclick="extData()"> Solve </button>
+    <button class="butt2" id="delST" , onclick="extData()"> Solve </button>
     <br> <br>
 
     <!-- Solve Area -->
-    <div class="vl"></div>
     <div id="main">
         <div id="leftCol">
             <button id="downVeri" onclick="download('fsmVerilogMain.v', textArea.value)"> Download Verilog </button>

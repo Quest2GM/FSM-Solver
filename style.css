@@ -1,5 +1,63 @@
+header {
+    padding: 20px;
+    text-align: center;
+    background: #3f4d3e;
+    color: white;
+    font-size: 30px;
+    font-weight: bold;
+    border: 1px;
+    border: 2px solid black;
+}
+
+.headP {
+    font-weight: bold;
+    font-size: 17px;
+    padding: 0px 1px;
+    color: #16331d;
+    margin-bottom:0%;
+    text-decoration: underline;
+}
+
+.subP {
+    font-weight: bold;
+    font-size: 15px;
+    padding: 0px 1px;
+    color: #16331d;
+    margin-bottom:1%;
+}
+
+.textP {
+    font-size: 15px;
+    padding: 0px 1px;
+    color: #16331d;
+    margin-bottom: 1%;
+}
+
+.butt {
+    background-color: #009879; /* Green */
+    border: none;
+    color: white;
+    padding: 5px 10px;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    font-size: 12px;
+}
+
+.butt2 {
+    background-color: #3c5439; /* Green */
+    border: none;
+    color: white;
+    padding: 5px 10px;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    font-size: 14px;
+  }
+
 .text {
-    text-align: center
+    text-align: center;
+    font-weight: bold;
 }
 
 .inBox {
@@ -14,7 +72,7 @@
     margin: 10px auto;
 }
 
-#leftCol {
+/* #leftCol {
     background-color: #FFFFFF;
     width: 50%;
     min-height: 1000px;
@@ -24,8 +82,8 @@
 #rightCol {
     background-color: #FFFFFF;
     min-height: 1000px;
-}
-
+} */
+/* 
 .vl {
     border-left: 1px solid black;
     height: 1000px;
@@ -33,11 +91,63 @@
     left: 50%;
     margin-left: -20px;
     top: 150;
+} */
+
+.stateTable {
+    border-collapse: collapse;
+    margin: 25px 0;
+    font-size: 0.9em;
+    font: "Cambria";
+    min-width: 500px;
+    
+    /* width: 500px;
+    border: 1px solid;
+    margin: 5px; */
 }
 
-#stateTable {
+.stateTable tr th {
+    background-color: #009879;
+    color: #FFFFFF;
+    text-align: center;
+    font-weight: bold;
+}
+
+.stateTable tr,
+.stateTable td {
+    padding: 5px 15px;
+}
+
+.stateTable tr {
+    border-bottom: 1px solid #DDDDDD;
+}
+
+.stateTableT2 {
+    border-collapse: collapse;
+    margin: 25px 0;
+    font-size: 0.9em;
+    font: "Cambria";
+    min-width: 300px;
+    text-align: center;
+    
+    /* width: 500px;
     border: 1px solid;
-    margin: 5px;
+    margin: 5px; */
+}
+
+.stateTableT2 tr th {
+    background-color: #5d9970;
+    color: #FFFFFF;
+    text-align: center;
+    font-weight: bold;
+}
+
+.stateTableT2 tr,
+.stateTableT2 td {
+    padding: 5px 15px;
+}
+
+.stateTableT2 tr {
+    border-bottom: 1px solid #DDDDDD;
 }
 
 form * {

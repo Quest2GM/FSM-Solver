@@ -3,7 +3,7 @@
 "use strict"; // Helpful for debugging
 
 // DOM Variables
-let stateTable = document.getElementById("stateTable");
+let stateTable = document.getElementsByClassName("stateTable")[0];
 let leftCol = document.getElementById("leftCol");
 let rightCol = document.getElementById("rightCol");
 let synchRad = document.getElementById("synchRad");
@@ -41,11 +41,13 @@ let check = false;              // Checks whether all 'x's in graph are crossed
 let boolExpr = "";              // Final boolean expression
 let tabVals = [[], [], [], []]; // Binary Table of Values
 let Asub = [];                  // A subsitute for preliminary calculation
-let AsubW0 = [[], [], [], [], []];  // For finding boolean expression for one-hot codes
-let AsubW1 = [[], [], [], [], []];
+let AsubW0 = [];                // For finding boolean expression for one-hot codes
+let AsubW1 = [];
 
 // Canvas Variables
 let lCtx, rCtx;                 // The type of context being used; 2D in this case
+let retBreakExp = [];
+let allLogic = [];
 
 // __________________________________________________________________
 
@@ -128,21 +130,79 @@ function extData() {
     mainSM();
     binStates = binTrans(states, binStates);
 
+    let hrTag = document.createElement("hr");
+    leftCol.appendChild(hrTag);
+
+    let pTag = document.createElement("p");
+    pTag.textContent = "Solve FSM";
+    pTag.setAttribute("class", "headP");
+    leftCol.appendChild(pTag);
+
     // Left Column Functions
+    pTag = document.createElement("p");
+    pTag.textContent = "Step One: State Code Assignment";
+    pTag.setAttribute("class", "subP");
+    leftCol.appendChild(pTag);
     dispState(states, binStates, leftCol);
+
+    pTag = document.createElement("p");
+    pTag.textContent = "Step Two: State Assignment Table";
+    pTag.setAttribute("class", "subP");
+    leftCol.appendChild(pTag);
     dispBinTable(states, binStates, w0, w1, Z, leftCol);
+
+    pTag = document.createElement("p");
+    pTag.textContent = "Step Three: Derive Boolean Logic";
+    pTag.setAttribute("class", "subP");
+    leftCol.appendChild(pTag);
+    findBoolExpr(leftCol);
+
+    pTag = document.createElement("p");
+    pTag.textContent = "Step Four: Verilog";
+    pTag.setAttribute("class", "subP");
+    leftCol.appendChild(pTag);
     verilogOutput(states, binStates, w0, w1, Z, txtVerilog);
-    findBoolExpr();
+
+
+    hrTag = document.createElement("hr");
+    leftCol.appendChild(hrTag);
+
+    pTag = document.createElement("p");
+    pTag.textContent = "State Minimize and Solve FSM";
+    pTag.setAttribute("class", "headP");
+    rightCol.appendChild(pTag);
 
     // Right Column Functions
+    pTag = document.createElement("p");
+    pTag.textContent = "Step One: Minimize State Table";
+    pTag.setAttribute("class", "subP");
+    rightCol.appendChild(pTag);
     let minFSMVar = minFSM();
     dispBinTable(minFSMVar[0], minFSMVar[0], minFSMVar[2], minFSMVar[3], minFSMVar[4], rightCol);
-    dispState(minFSMVar[0], minFSMVar[1], rightCol);
-    dispBinTable(minFSMVar[0], minFSMVar[1], minFSMVar[2], minFSMVar[3], minFSMVar[4], rightCol);
-    verilogOutput(minFSMVar[0], minFSMVar[1], minFSMVar[2], minFSMVar[3], minFSMVar[4], txtVerilog2);
 
-    // Circuit Build
-    initializeCirc();
+    pTag = document.createElement("p");
+    pTag.textContent = "Step Two: State Code Assignment";
+    pTag.setAttribute("class", "subP");
+    rightCol.appendChild(pTag);
+    dispState(minFSMVar[0], minFSMVar[1], rightCol);
+
+    pTag = document.createElement("p");
+    pTag.textContent = "Step Three: State Assignment Table";
+    pTag.setAttribute("class", "subP");
+    rightCol.appendChild(pTag);
+    dispBinTable(minFSMVar[0], minFSMVar[1], minFSMVar[2], minFSMVar[3], minFSMVar[4], rightCol);
+
+    pTag = document.createElement("p");
+    pTag.textContent = "Step Four: Derive Boolean Logic";
+    pTag.setAttribute("class", "subP");
+    rightCol.appendChild(pTag);
+    findBoolExpr(rightCol);
+
+    pTag = document.createElement("p");
+    pTag.textContent = "Step Five: Verilog";
+    pTag.setAttribute("class", "subP");
+    rightCol.appendChild(pTag);
+    verilogOutput(minFSMVar[0], minFSMVar[1], minFSMVar[2], minFSMVar[3], minFSMVar[4], txtVerilog2);
 
     return;
 }
@@ -209,6 +269,7 @@ function selectRadio() {
 function dispState(s, bS, xCol) {
     let row, h1, h2, c1, c2, tab1;
     tab1 = document.createElement("table");
+    tab1.setAttribute("class", "stateTableT2");
     row = document.createElement("tr");
     h1 = document.createElement("th");
     h2 = document.createElement("th");
@@ -243,17 +304,40 @@ function dispBinTable(s, bS, w0Min, w1Min, zMin, xCol) {
     let x1, x2, x3, x4;
 
     tab1 = document.createElement("table");
+    tab1.setAttribute("class", "stateTableT2");
+
     row = document.createElement("tr");
 
     h1 = document.createElement("th");
     h2 = document.createElement("th");
-    h3 = document.createElement("th");
     h4 = document.createElement("th");
+
+    h2.colSpan = 2;
 
     row.appendChild(h1);
     row.appendChild(h2);
-    row.appendChild(h3);
     row.appendChild(h4);
+    tab1.appendChild(row);
+
+    row = document.createElement("tr");
+    c1 = document.createElement("td");
+    c2 = document.createElement("td");
+    c3 = document.createElement("td");
+    c4 = document.createElement("td");
+
+    c1.textContent = "Y";
+    c1.style.fontWeight = "bold";
+    c2.textContent = "w=0 [y]";
+    c2.style.fontWeight = "bold";
+    c3.textContent = "w=1 [y]";
+    c3.style.fontWeight = "bold";
+    c4.textContent = "z";
+    c4.style.fontWeight = "bold";
+
+    row.appendChild(c1);
+    row.appendChild(c2);
+    row.appendChild(c3);
+    row.appendChild(c4);
     tab1.appendChild(row);
 
     h1.textContent = "Current State";
@@ -422,12 +506,9 @@ function download(filename, text) {
     var element = document.createElement('a');
     element.setAttribute('href', 'data:text/plain;charset=utf-8;javascript:void(0),' + encodeURIComponent(text));
     element.setAttribute('download', filename);
-
     element.style.display = 'none';
     document.body.appendChild(element);
-
     element.click();
-
     document.body.removeChild(element);
 
     return;
@@ -908,9 +989,16 @@ function checkElem(elemArr) {
     return;
 }
 
-function findBoolExpr() {
+function findBoolExpr(colType) {
+    C = []; B = [];
+    notDoneList = []; doneList = []; doneIter = false;
+    check = false;
+    boolExpr = "";
+    tabVals = [[], [], [], []];
+    Asub = []; AsubW0 = []; AsubW1 = [];
+    let dcA = [];
+
     if (typeBin === 0) {
-        let dcA = [];
         findANumber();
         for (let i = states.length; i < Math.pow(2, numV); i++) {
             dcA.push(parseInt(i.toString(2) + "0", 2));
@@ -919,19 +1007,26 @@ function findBoolExpr() {
 
         for (let i = 0; i < Asub.length; i++) {
             let expr;
-
             if (Asub[i].length === 0)
                 expr = "0";
             else
                 expr = mainBoolOut(Asub[i], dcA);
-    
+
             if (i !== Asub.length - 1)
                 expr = "Y" + (Asub.length - i - 2) + " = " + expr;
             else
                 expr = "Z = " + expr;
-            console.log(expr);
+
+            let pTag = document.createElement("p");
+            pTag.setAttribute("class", "textP");
+            pTag.textContent = expr;
+            colType.appendChild(pTag);
         }
     } else {
+        for (let i = 0; i < numV + 1; i++) {
+            AsubW0.push([]);
+            AsubW1.push([]);
+        }
         findOneHot();
     }
 
@@ -1028,7 +1123,10 @@ function findOneHot() {
         if (expr.charAt(expr.length - 1) === " ")
             expr = expr.substring(0, expr.length - 3);
 
-        console.log(expr);
+        let pTag = document.createElement("p");
+        pTag.setAttribute("class", "textP");
+        pTag.textContent = expr;
+        leftCol.appendChild(pTag);
     }
 
     // Expressions for Z
@@ -1043,7 +1141,11 @@ function findOneHot() {
 
     if (expr.charAt(expr.length - 1) === " ")
         expr = expr.substring(0, expr.length - 3);
-    console.log(expr);
+
+    let pTag = document.createElement("p");
+    pTag.setAttribute("class", "textP");
+    pTag.textContent = expr;
+    leftCol.appendChild(pTag);
 
     return;
 }
@@ -1052,11 +1154,50 @@ function findOneHot() {
 // Circuit Build
 // ------------------------
 
-class dFF {
-    constructor(posX, posY, syn) {
+class andGate {
+    constructor(posX, posY, h) {
         this.posX = posX;
         this.posY = posY;
+        this.h = h;
+    }
+
+    buildAnd() {
+        lCtx.beginPath();
+        lCtx.arc(this.posX, this.posY, (this.h) / 2, 1.5 * Math.PI, 0.5 * Math.PI, false);
+        lCtx.moveTo(this.posX, this.posY - (this.h) / 2); lCtx.lineTo(this.posX - (this.h) / 3, this.posY - (this.h) / 2);        // Top Line
+        lCtx.moveTo(this.posX, this.posY + (this.h) / 2); lCtx.lineTo(this.posX - (this.h) / 3, this.posY + (this.h) / 2);        // Bottom Line
+        lCtx.moveTo(this.posX - (this.h) / 3, this.posY + (this.h) / 2); lCtx.lineTo(this.posX - (this.h) / 3, this.posY - (this.h) / 2);   // Vertical Line
+        lCtx.moveTo(this.posX + (this.h) / 2, this.posY); lCtx.lineTo(this.posX + (this.h) / 2 + (this.h) / 3, this.posY);             // Output Line
+        lCtx.strokeStyle = "000000"; lCtx.stroke();
+    }
+}
+
+class orGate {
+    constructor(posX, posY) {
+        this.posX = posX;
+        this.posY = posY;
+    }
+
+    buildOr() {
+        lCtx.beginPath();
+        lCtx.moveTo(this.posX, this.posY); lCtx.bezierCurveTo(this.posX + 20, this.posY, this.posX + 20, this.posY + 60, this.posX, this.posY + 60);
+        lCtx.moveTo(this.posX, this.posY); lCtx.lineTo(this.posX + 15, this.posY);
+        lCtx.moveTo(this.posX, this.posY + 60); lCtx.lineTo(this.posX + 15, this.posY + 60);
+        lCtx.moveTo(this.posX + 15, this.posY); lCtx.bezierCurveTo(this.posX + 60, this.posY, this.posX + 70, this.posY + 30, this.posX + 70, this.posY + 30);
+        lCtx.moveTo(this.posX + 15, this.posY + 60); lCtx.bezierCurveTo(this.posX + 60, this.posY + 60, this.posX + 70, this.posY + 30, this.posX + 70, this.posY + 30);
+        lCtx.moveTo(this.posX + 70, this.posY + 30); lCtx.lineTo(this.posX + 90, this.posY + 30);
+        lCtx.stroke();
+    }
+}
+
+class dFF {
+    constructor(posX, posY, clkPosX, syn) {
+        this.posX = posX;
+        this.posY = posY;
+        this.clkPosX = clkPosX;
         this.syn = syn;
+        this.dFFOutX = this.posX + 65;
+        this.dFFOutY = this.posY - 25;
     }
 
     buildDFF() {
@@ -1065,7 +1206,13 @@ class dFF {
         lCtx.moveTo(this.posX + 70, this.posY); lCtx.lineTo(this.posX + 70, this.posY + 80);
         lCtx.moveTo(this.posX + 70, this.posY + 80); lCtx.lineTo(this.posX, this.posY + 80);
         lCtx.moveTo(this.posX, this.posY + 80); lCtx.lineTo(this.posX, this.posY);
-        lCtx.lineWidth = 2;
+        lCtx.moveTo(this.posX + 70, this.posY + 25); lCtx.lineTo(this.posX + 90, this.posY + 25);
+        lCtx.moveTo(this.posX + 90, this.posY + 25); lCtx.lineTo(this.posX + 90, this.posY - 25);
+        lCtx.moveTo(this.posX + 90, this.posY - 25); lCtx.lineTo(this.posX + 65, this.posY - 25);
+        lCtx.moveTo(this.posX, this.posY + 60); lCtx.lineTo(this.posX - 5, this.posY + 60);
+        lCtx.moveTo(this.posX - 5, this.posY + 60); lCtx.lineTo(this.posX - 5, this.posY + 120);
+        lCtx.moveTo(this.posX - 5, this.posY + 120); lCtx.lineTo(this.clkPosX, this.posY + 120);
+        lCtx.lineWidth = 1;
         lCtx.strokeStyle = "000000";
         lCtx.stroke();
 
@@ -1089,69 +1236,86 @@ class dFF {
     }
 }
 
-class andGate {
-    constructor (posX, posY) {
-        this.posX = posX;
-        this.posY = posY;
-    }
+function buildCirc() {
+    let lCanv = document.createElement("canvas"); let rCanv = document.createElement("canvas");
+    let lContext = lCanv.getContext("2d"); let rContext = rCanv.getContext("2d");
 
-    buildAnd() {
-        lCtx.beginPath();
-        lCtx.arc(this.posX, this.posY, 30, 1.5 * Math.PI, 0.5 * Math.PI, false);
-        lCtx.moveTo(this.posX, this.posY - 30); lCtx.lineTo(this.posX - 20, this.posY - 30);
-        lCtx.moveTo(this.posX, this.posY + 30); lCtx.lineTo(this.posX - 20, this.posY + 30);
-        lCtx.moveTo(this.posX - 20, this.posY + 30); lCtx.lineTo(this.posX - 20, this.posY - 30);
-        lCtx.moveTo(this.posX + 30, this.posY); lCtx.lineTo(this.posX + 50, this.posY);
-        lCtx.strokeStyle = "000000"; lCtx.stroke();
-    }
-}
-
-class orGate {
-    constructor (posX, posY) {
-        this.posX = posX;
-        this.posY = posY;
-    }
-
-    buildOr() {
-        lCtx.beginPath();
-        lCtx.moveTo(this.posX, this.posY);
-        lCtx.bezierCurveTo(this.posX + 20, this.posY, this.posX + 20, this.posY + 60, this.posX, this.posY + 60);
-        lCtx.moveTo(this.posX, this.posY); lCtx.lineTo(this.posX + 30, this.posY);
-        lCtx.moveTo(this.posX, this.posY + 60); lCtx.lineTo(this.posX + 30, this.posY + 60);
-        lCtx.moveTo(this.posX + 30, this.posY);
-        lCtx.bezierCurveTo(this.posX + 60, this.posY, this.posX + 70, this.posY + 30, this.posX + 70, this.posY + 30);
-        lCtx.moveTo(this.posX + 30, this.posY + 60);
-        lCtx.bezierCurveTo(this.posX + 60, this.posY + 60, this.posX + 70, this.posY + 30, this.posX + 70, this.posY + 30);
-        lCtx.moveTo(this.posX + 70, this.posY + 30); lCtx.lineTo(this.posX + 90, this.posY + 30);
-        lCtx.stroke();
-    }
-}
-
-function initializeCirc() {
-    let lCanv = document.createElement("canvas");
-    let rCanv = document.createElement("canvas");
-    let lContext = lCanv.getContext("2d");
-    let rContext = rCanv.getContext("2d");
+    let n = 2; allLogic = ["(y0)(y1)'", "(y0)'(y1)"];
 
     lCanv.id = "lCanv"; rCanv.id = "rCanv";
-    lCanv.height = "500"; lCanv.width = "1500";
-    rCanv.height = "100"; rCanv.width = "100";
+    lCanv.height = "" + (60 + 80 * (n) + 150 * (n - 1)) + ""; lCanv.width = "6000";
+    rCanv.height = "" + (60 + 80 * (n) + 150 * (n - 1)) + ""; rCanv.width = "6000";
     lCanv.style.border = "1px solid #000000;"; rCanv.style.border = "1px solid #000000;";
 
-    lCtx = lCanv.getContext("2d");
-    rCtx = rCanv.getContext("2d");
+    lCtx = lCanv.getContext("2d"); rCtx = rCanv.getContext("2d");
+    leftCol.appendChild(lCanv); rightCol.appendChild(rCanv);
 
-    leftCol.appendChild(lCanv);
-    rightCol.appendChild(rCanv);
+    // Create lines for Y boolean logic
+    let x = 10; let bLinePos = [];
+    for (let i = 0; i < n; i++) {
+        lCtx.moveTo(x, 50); lCtx.lineTo(x, lCanv.height);
+        lCtx.moveTo(x + 40, 50); lCtx.lineTo(x + 40, lCanv.height);
+        lCtx.stroke();
 
-    let x = new orGate(120, 20);
-    x.buildOr();
+        lCtx.font = "14px Cambria";
+        lCtx.fillText("(y" + i + ")", x - 10, 30);
+        lCtx.fillText("(y" + i + ")'", x + 25, 30);
 
-    let y = new andGate(50, 50);
-    y.buildAnd();
+        bLinePos.push(x); bLinePos.push(x + 40);
+        x += 80;
+    }
+
+    // Create line for W boolean logic and clock
+    lCtx.moveTo(x, 50); lCtx.lineTo(x, lCanv.height);
+    lCtx.moveTo(x + 40, 50); lCtx.lineTo(x + 40, lCanv.height);
+    lCtx.moveTo(x + 80, 50); lCtx.lineTo(x + 80, lCanv.height);
+    lCtx.stroke();
+    lCtx.font = "14px Cambria";
+    lCtx.fillText("w", x - 10, 30);
+    lCtx.fillText("w'", x + 25, 30);
+    lCtx.fillText("clk", x + 50, 30);
+    bLinePos.push(x); bLinePos.push(x + 40); bLinePos.push(x + 80);
+
+    // Create D-flip flops
+    let z; x = 100;
+    for (let i = 0; i < n; i++) {
+        z = new dFF(400 + 80 * n, x, bLinePos[bLinePos.length - 1], true);
+        x += 150;
+        z.buildDFF();
+        lCtx.moveTo(z.dFFOutX, z.dFFOutY); lCtx.lineTo(bLinePos[i * 2], z.dFFOutY);
+        lCtx.stroke();
+    }
 
     return;
 
+}
+
+function breakExpr(B) {
+    let bUse = [];
+    let bSplit = B.split("+");
+    let numORS = bSplit.length - 1;
+    let numDFF = numV;
+
+    let cAND = 0; let litNum = 0;
+    let litNumArr = [];
+    for (let i = 0; i < numORS + 1; i++) {
+        if (bSplit[i] !== '') {
+            cAND++;
+            for (let j = 0; j < bSplit[i].length; j++) {
+                if (bSplit[i].charAt(j) === '(' || bSplit[i].charAt(j) === ')')
+                    litNum += 0.5;
+            }
+            litNumArr.push(litNum);
+            litNum = 0;
+        }
+    }
+
+    bUse.push(cAND);
+    bUse.push(numORS);
+    bUse.push(numDFF);
+    bUse = bUse.concat(...litNumArr);
+
+    return bUse;
 }
 
 // __________________________________________________________________
