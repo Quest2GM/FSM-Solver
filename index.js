@@ -355,9 +355,9 @@ function dispBinTable(s, bS, w0Min, w1Min, zMin, xCol, tab) {
 
     c1.textContent = "y";
     c1.style.fontWeight = "bold";
-    c2.textContent = "w=0 [y]";
+    c2.textContent = "w=0 [Y]";
     c2.style.fontWeight = "bold";
-    c3.textContent = "w=1 [y]";
+    c3.textContent = "w=1 [Y]";
     c3.style.fontWeight = "bold";
     c4.textContent = "z";
     c4.style.fontWeight = "bold";
