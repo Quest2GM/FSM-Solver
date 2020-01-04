@@ -168,7 +168,6 @@ function extData() {
     }
 
     mainSM();
-    console.log(newState);
     binStates = binTrans(states, binStates);
 
     let hrTag = document.createElement("hr");
@@ -462,7 +461,7 @@ function padZeros(num) {
 
 function verilogOutput(s, bS, wL0, wL1, zL, tx) {
     let rNumV;
-    if (binType === 0)
+    if (typeBin === 0)
         rNumV = numV - 1;
     else
         rNumV = numV;
