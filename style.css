@@ -72,7 +72,7 @@ header {
     margin: 10px auto;
 }
 
-.stateTable {
+#stateTable {
     border-collapse: collapse;
     margin: 25px 0;
     font-size: 0.9em;
@@ -84,19 +84,19 @@ header {
     margin: 5px; */
 }
 
-.stateTable tr th {
+#stateTable tr th {
     background-color: #009879;
     color: #FFFFFF;
     text-align: center;
     font-weight: bold;
 }
 
-.stateTable tr,
-.stateTable td {
+#stateTable tr,
+#stateTable td {
     padding: 5px 15px;
 }
 
-.stateTable tr {
+#stateTable tr {
     border-bottom: 1px solid #DDDDDD;
 }
 

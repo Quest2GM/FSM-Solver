@@ -3,16 +3,16 @@
 "use strict"; // Helpful for debugging
 
 // DOM Variables
-let stateTable = document.getElementsByClassName("stateTable")[0];
-let leftCol = document.getElementById("leftCol");
+
+let stateTable = document.getElementById("stateTable");
 let synchRad = document.getElementById("synchRad");
 let asynchRad = document.getElementById("asynchRad");
 let binRad = document.getElementById("binRad");
 let OHRad = document.getElementById("OHRad");
 let MOHRad = document.getElementById("MOHRad");
+let leftCol = document.getElementById("leftCol");
 let txtVerilog = document.getElementById("textArea");
 let buttonTag = document.createElement("button");
-let errorAlert = document.getElementById("errorAlert");
 
 // Verilog FSM Variables
 let typeBin;    // 0 = binary, 1 = one-hot, 2 = modified one-hot
@@ -50,7 +50,7 @@ let allLogic = [];
 // __________________________________________________________________
 
 function addRow() {
-    if (stateTableRC > 25)
+    if (stateTableRC > 10)
         return;
 
     let row = document.createElement("tr");
@@ -109,6 +109,7 @@ function literalAlpha(i) {
 }
 
 function checkValid() {
+
     let notValid = false;
     for (let i = 2; i < stateTable.rows.length; i++) {
         states.push(literalAlpha(i - 2));
@@ -128,6 +129,14 @@ function checkValid() {
                 notValid = true;
             }
         }
+    }
+
+    if (!synchRad.checked && !asynchRad.checked) {
+        errorAlert.textContent = "Select reset type!";
+        notValid = true;
+    } else if (!binRad.checked && !OHRad.checked && !MOHRad.checked) {
+        errorAlert.textContent = "Select binary type!";
+        notValid = true;
     }
 
     if (!notValid) {
@@ -159,6 +168,7 @@ function extData() {
     }
 
     mainSM();
+    console.log(newState);
     binStates = binTrans(states, binStates);
 
     let hrTag = document.createElement("hr");
@@ -310,15 +320,27 @@ function dispBinTable(s, bS, w0Min, w1Min, zMin, xCol, tab) {
     let row, h1, h2, h3, h4, c1, c2, c3, c4, tab1;
     let x1, x2, x3, x4;
 
+    if (!tab) {
+        let pTag = document.createElement("p");
+        pTag.textContent += "P = ";
+        for (let i = 0; i < newState.length; i++) {
+            pTag.textContent += "(";
+            for (let j = 0; j < newState[i].length; j++) {
+                pTag.textContent += newState[i][j];
+            }
+            pTag.textContent += ")";
+        }
+        pTag.setAttribute("class", "textP");
+        leftCol.appendChild(pTag);
+    }
+
     tab1 = document.createElement("table");
     tab1.setAttribute("class", "stateTableT2");
-
     row = document.createElement("tr");
 
     h1 = document.createElement("th");
     h2 = document.createElement("th");
     h4 = document.createElement("th");
-
     h2.colSpan = 2;
 
     row.appendChild(h1);
@@ -451,7 +473,7 @@ function verilogOutput(s, bS, wL0, wL1, zL, tx) {
     tx.value += ("   assign resetn = SW[0];\n");
     tx.value += ("   assign clock = KEY[0];\n");
     tx.value += ("\n");
-    tx.value += ("   reg [3:0] y_Q, Y_D;\n");
+    tx.value += ("   reg [" + numV + ":0] y_Q, Y_D;\n");
 
     let parameters = "   parameter ";
     for (let i = 0; i < bS.length; i++) {

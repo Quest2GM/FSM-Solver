@@ -9,8 +9,6 @@
     <link rel="stylesheet" href="style.css">
 </head>
 
-<script src="index.js"></script>
-
 <header>
     NΨ FSM Solver
 </header>
@@ -19,7 +17,7 @@
     <!-- FSM State Table -->
     <div>
         <p class="headP"> State Table </p>
-        <table class="stateTable">
+        <table id="stateTable">
             <tr>
                 <th>Current State</th>
                 <th colspan=2>Next State</th>
@@ -38,7 +36,6 @@
                 <td> <input class="inBox" , type="text"> </td>
             </tr>
         </table>
-        <p id="errorAlert"></p>
     </div>
 
     <br>
@@ -61,6 +58,8 @@
     <br>
     <input id="MOHRad" , type="radio" , name="binType"> Modified One-Hot
 
+    <p id="errorAlert"></p>
+
     <br> <br>
     <button class="butt2" id="delST" , onclick="checkValid()"> Solve </button>
     <br> <br>
@@ -72,6 +71,7 @@
         </div>
     </div>
 
+    <script src="index.js"></script>
 </body>
 
 </html>
