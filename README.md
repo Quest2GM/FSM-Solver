@@ -2,7 +2,7 @@
 This project began on December 9, 2019. The goal of this program is to solve any binary Finite State Machine (FSM) by determining the logic for the states, its Verilog code and by performing state minimization.
 
 ## How it works?
-The program uses the Quinn-McCluskey Algorithm to derive the boolean expressions. This algorithm is that it uses the idea of K-maps (finding adjacent 1s), but executes it in a more algorithmic and programmable way. The Verilog code was taken from Lab 6, Part 2 in the course, ECE259, and modified to suit the inputted FSM. Finally, state minimization is performed iteratively using the method learned in class.
+The program uses the Quinn-McCluskey Algorithm to derive the boolean expressions. This algorithm uses the idea of K-maps (finding adjacent 1s), but executes it in a more algorithmic and programmable way. The Verilog code was taken from Lab 6, Part 2 in the course, ECE259, and modified to suit the inputted FSM. Finally, state minimization is performed iteratively using standard methods.
 
 ## Possible Improvements
 1. Although more than 10 states are possible with the program, I decided to limit it to this number to avoid having to deal with spam and because Altera can't handle it.
